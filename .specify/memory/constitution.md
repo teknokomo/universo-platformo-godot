@@ -1,21 +1,15 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 0.0.0 → 1.0.0
-Reason: Initial constitution for Universo Platformo Godot project
+Version Change: 1.0.0 → 1.1.0
+Reason: Added Security-First Design principle (VIII), clarified Package-Based Modularity with Godot-native details, enhanced Technology Stack Requirements
 
 Modified Principles:
-- NEW: I. Godot-Native Architecture
-- NEW: II. Package-Based Modularity
-- NEW: III. Bilingual Documentation (NON-NEGOTIABLE)
-- NEW: IV. Test-First Development
-- NEW: V. Database Abstraction
-- NEW: VI. Progressive Feature Development
-- NEW: VII. GDScript Best Practices
+- UPDATED: II. Package-Based Modularity (Godot-Native Approach) - Added clarification that Godot's addon system replaces PNPM, no external package manager needed
+- NEW: VIII. Security-First Design - Added comprehensive security principle
 
-Added Sections:
-- Technology Stack Requirements
-- Development Workflow
+Updated Sections:
+- Technology Stack Requirements - Specified minimum Godot 4.3+, clarified HTTP/WebSocket implementation, detailed authentication strategy pattern, explicit package management via addon system
 
 Templates Status:
 - ✅ plan-template.md - Reviewed, no updates needed (generic constitution check)
@@ -23,11 +17,12 @@ Templates Status:
 - ✅ tasks-template.md - Reviewed, no updates needed (user story based)
 
 Follow-up TODOs:
-- None - All placeholders filled with concrete values
+- None - All enhancements complete
 
 Ratification Details:
 - Original ratification date: 2025-11-16 (initial adoption)
-- This is the founding constitution for the Universo Platformo Godot project
+- Amendment date: 2025-11-16 (same day - comprehensive enhancement)
+- Reason for amendment: Specification enhancement phase identified gaps in security principles and package management clarity
 -->
 
 # Universo Platformo Godot Constitution
@@ -44,15 +39,17 @@ Every feature MUST be implemented using Godot Engine's native capabilities and G
 
 **Rationale**: Godot Engine provides a complete ecosystem for full-stack development. Leveraging native capabilities ensures optimal performance, maintainability, and seamless integration with the engine's features.
 
-### II. Package-Based Modularity
+### II. Package-Based Modularity (Godot-Native Approach)
 
-All functionality MUST be organized as self-contained packages within `packages/` directory:
+All functionality MUST be organized as self-contained packages within `packages/` directory using Godot's native addon system:
 - Each package follows the naming convention: `packages/{feature}-frt` (frontend) and `packages/{feature}-srv` (backend/server)
 - Every package contains a `base/` root folder for core implementation
+- Packages are Godot plugins registered in `project.godot` (no PNPM or npm equivalent needed)
+- Package dependencies declared in `plugin.cfg` [dependencies] section
 - Packages are independently testable and documented
 - Future alternative implementations can coexist (e.g., `packages/clusters-frt/base/`, `packages/clusters-frt/alternative/`)
 
-**Rationale**: Package-based structure enables incremental development, parallel feature work, and future extensibility. The monorepo approach with clear separation supports team scalability.
+**Rationale**: Package-based structure enables incremental development, parallel feature work, and future extensibility. Unlike Universo Platformo React which uses PNPM workspaces, Godot's native addon system provides built-in package management without external tools. The monorepo approach with clear separation supports team scalability.
 
 ### III. Bilingual Documentation (NON-NEGOTIABLE)
 
@@ -110,21 +107,42 @@ All code MUST follow Godot and GDScript community best practices:
 
 **Rationale**: Consistent coding standards improve readability, reduce bugs, and make the codebase accessible to the broader Godot developer community.
 
+### VIII. Security-First Design
+
+Security MUST be integral to all features, not an afterthought:
+- Authentication and authorization checks MUST precede all state-changing operations
+- All sensitive data (credentials, tokens) MUST be stored securely (environment variables, memory-only for tokens)
+- Input validation and sanitization MUST occur at API boundaries
+- Security headers and CORS policies MUST be properly configured
+- Rate limiting MUST protect against abuse
+- Regular security reviews and threat modeling MUST be conducted
+- Security vulnerabilities MUST be addressed with highest priority
+
+**Rationale**: As a full-stack platform handling user data, security is paramount. Building security into the architecture from the start prevents costly retrofits and protects users. The Universo Platformo is designed for multi-user environments where trust and safety are critical.
+
 ## Technology Stack Requirements
 
 **Core Technologies**:
-- Godot Engine (latest stable version) with GDScript
+- Godot Engine 4.3+ (minimum version) with GDScript
 - Supabase for database and authentication (with abstraction layer)
-- Material Design UI principles adapted for Godot (using available UI themes/plugins)
-- Monorepo structure (inspired by PNPM workspaces, adapted for Godot project structure)
+- Material Design UI principles adapted for Godot (using native Control nodes with custom themes)
+- Godot's native addon system (NO PNPM/npm equivalent - packages managed through project.godot)
+
+**Backend Implementation**:
+- HTTP Server: Godot's native HTTPServer class (4.3+) or vetted third-party addon
+- WebSocket Server: Godot's native WebSocketServer and WebSocketPeer classes
+- Scale Target: 100-500 concurrent users per server instance
 
 **Authentication**:
-- Supabase authentication integration
-- Designed to support alternative auth providers in future (similar to Passport.js strategy pattern)
+- JWT tokens with Passport.js-inspired strategy pattern
+- Initial: JWTAuthStrategy class
+- Extensibility: OAuth2Strategy, APIKeyStrategy, custom strategies via BaseAuthStrategy interface
 
 **Package Management**:
 - Godot's addon system for shared packages
-- Each package is a self-contained Godot project/addon structure
+- Each package is a self-contained Godot plugin with plugin.cfg and plugin.gd
+- Dependencies declared in plugin.cfg [dependencies] section
+- Loading order controlled via autoload system in project.godot
 
 **Documentation Standards**:
 - English + Russian with exact structural parity
@@ -184,4 +202,4 @@ This constitution supersedes all other development practices and guidelines. In 
 **Living Document**:
 This constitution evolves with the project. Feedback and improvement suggestions are welcome through the standard issue/PR process.
 
-**Version**: 1.0.0 | **Ratified**: 2025-11-16 | **Last Amended**: 2025-11-16
+**Version**: 1.1.0 | **Ratified**: 2025-11-16 | **Last Amended**: 2025-11-16
