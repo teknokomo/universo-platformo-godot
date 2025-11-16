@@ -1,0 +1,54 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Universo Platformo Godot"
+config/description="Implementation of Universo Platformo / Universo MMOOMM / Universo Kiberplano built on Godot Engine and GDScript"
+config/version="0.1.0"
+config/tags=PackedStringArray("platform", "metaverse", "multiplayer")
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Config="*res://scripts/autoload/config.gd"
+DatabaseManager="*res://scripts/autoload/database_manager.gd"
+NetworkManager="*res://scripts/autoload/network_manager.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=2
+window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray()
+
+[internationalization]
+
+locale/translations=PackedStringArray()
+locale/test="en"
+locale/fallback="en"
+
+[network]
+
+limits/debugger/max_chars_per_second=32768
+limits/debugger/max_queued_messages=2048
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+textures/canvas_textures/default_texture_filter=2
+anti_aliasing/quality/msaa_2d=2
+anti_aliasing/quality/msaa_3d=2

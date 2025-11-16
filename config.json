@@ -1,0 +1,19 @@
+{
+  "version": "0.1.0",
+  "database_type": "supabase",
+  "max_clients": 32,
+  "features": {
+    "clusters": true,
+    "metaverses": false,
+    "spaces": false,
+    "uniks": false
+  },
+  "ui": {
+    "theme": "default",
+    "language": "en"
+  },
+  "network": {
+    "timeout": 30,
+    "retry_attempts": 3
+  }
+}

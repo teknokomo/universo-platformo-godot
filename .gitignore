@@ -3,6 +3,14 @@
 .gigaide
 .cursorrules
 
+# Godot-specific
+.import/
+*.import
+.godot/
+*.translation
+export.cfg
+export_presets.cfg
+
 # dependencies
 **/node_modules
 **/package-lock.json
