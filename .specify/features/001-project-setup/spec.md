@@ -434,6 +434,104 @@ As a developer, I need the first feature (Clusters) fully implemented so I can u
 - **SC-012**: Security checklist validation passes (HTTPS/WSS only, rate limiting active, CORS configured)
 - **SC-013**: Package dependency graph has no circular dependencies (validated by automated script)
 
+#### Shared Utility Packages
+
+- **FR-071**: Project MUST have universo-utils package for shared utility functions
+- **FR-072**: universo-utils MUST provide namespaced exports for: validation, serialization, math, updl, publish, env utilities
+- **FR-073**: Project MUST have universo-types package for shared type definitions and data schemas
+- **FR-074**: universo-types MUST define core entities (Cluster, Domain, Resource, User, Session) with validation schemas
+- **FR-075**: Project MUST have universo-i18n package for centralized internationalization
+- **FR-076**: universo-i18n MUST support language switching, translation loading, and pluralization
+- **FR-077**: Shared packages MUST be implemented in scripts/ directory with clear module structure
+
+#### API Client Package
+
+- **FR-078**: Project MUST have universo-api-client package for centralized HTTP communication
+- **FR-079**: API client MUST provide methods for: GET, POST, PUT, DELETE, PATCH with automatic error handling
+- **FR-080**: API client MUST handle authentication token injection automatically
+- **FR-081**: API client MUST support request/response interceptors for logging and error handling
+- **FR-082**: API client MUST implement retry logic with exponential backoff (max 3 retries, delays: 1s, 2s, 4s)
+- **FR-083**: API client MUST provide typed response parsing using universo-types schemas
+
+#### Template and UI Library Packages
+
+- **FR-084**: Project MUST have universo-template-godot package for reusable UI components
+- **FR-085**: UI library MUST provide components: MaterialButton, MaterialCard, MaterialDialog, MaterialInput, MaterialList, DataGrid
+- **FR-086**: UI components MUST follow Material Design principles with consistent theming
+- **FR-087**: UI library MUST be theme-aware (dark/light mode support)
+- **FR-088**: Project MUST support template packages (e.g., template-quiz, template-mmoomm) for reusable feature patterns
+- **FR-089**: Template packages MUST be copyable/forkable starting points for new feature implementations
+
+#### API Documentation Package
+
+- **FR-090**: Project MUST have universo-rest-docs package for REST API documentation
+- **FR-091**: REST docs MUST be generated automatically from route definitions
+- **FR-092**: REST docs MUST include: endpoint paths, HTTP methods, request schemas, response schemas, auth requirements
+- **FR-093**: REST docs MUST be accessible via /api/docs endpoint in development mode
+- **FR-094**: REST docs MUST support both English and Russian descriptions
+
+#### Analytics Package
+
+- **FR-095**: Project SHOULD have analytics-frt package for usage analytics and metrics
+- **FR-096**: Analytics MUST track: page views, feature usage, error rates, performance metrics
+- **FR-097**: Analytics MUST provide dashboard UI with charts (line, bar, pie) using visualization library
+- **FR-098**: Analytics MUST respect user privacy settings (opt-in/opt-out)
+- **FR-099**: Analytics data MUST be stored separately from application data
+
+#### Space Builder (AI-Assisted Creation)
+
+- **FR-100**: Project MUST have space-builder-frt/srv packages for AI-assisted flow creation
+- **FR-101**: Space Builder MUST accept natural language prompts describing desired functionality
+- **FR-102**: Space Builder MUST generate node graphs (flows) from prompts using LLM integration
+- **FR-103**: Space Builder MUST validate generated flows before saving
+- **FR-104**: Space Builder MUST support multiple LLM providers (OpenAI, Anthropic, local models)
+- **FR-105**: Space Builder UI MUST include: prompt input field, model selector, generation button, preview pane
+
+#### Publishing System with Exporters
+
+- **FR-106**: Project MUST have publish-frt/srv packages for exporting and sharing content
+- **FR-107**: Publishing system MUST support multiple export targets: Web (HTML5), Desktop (native export), Mobile (Android/iOS via Godot export)
+- **FR-108**: Publishing system MUST use technology-specific exporter pattern (minipackages within publish package)
+- **FR-109**: Each exporter MUST implement: validate(), generate(), package(), deploy() methods
+- **FR-110**: Publishing system MUST generate deployment-ready artifacts (ZIP, executable, app bundle)
+- **FR-111**: Publishing system MUST provide UI for: export target selection, configuration, progress tracking, download/deploy buttons
+- **FR-112**: Publishing system MUST support streaming publication API for real-time export status updates
+
+#### UPDL (Universal Platform Description Language)
+
+- **FR-113**: Project MUST implement UPDL system for describing scenes and logic in technology-agnostic format
+- **FR-114**: UPDL MUST be JSON-based with schema validation
+- **FR-115**: UPDL MUST describe: entities, transforms (position, rotation, scale), components (mesh, material, physics, script), relationships
+- **FR-116**: UPDL processor MUST convert UPDL → Godot scene format (.tscn)
+- **FR-117**: UPDL processor MUST convert Godot scene → UPDL format (bidirectional)
+- **FR-118**: UPDL MUST support extensions for platform-specific features
+- **FR-119**: Project MUST have updl package containing: parser, validator, transformer, serializer
+
+#### Multiplayer Server Package
+
+- **FR-120**: Project SHOULD have multiplayer-server-srv package for dedicated multiplayer functionality
+- **FR-121**: Multiplayer server MUST support room-based architecture (create, join, leave rooms)
+- **FR-122**: Multiplayer server MUST synchronize entity state between clients in same room
+- **FR-123**: Multiplayer server MUST handle player authentication and authorization per room
+- **FR-124**: Multiplayer server MUST implement anti-cheat measures (server authority, input validation)
+- **FR-125**: Multiplayer server MUST support configurable room capacity (2-100 players per room)
+
+#### Package Templates
+
+- **FR-126**: Project MUST have TEMPLATE-README.md and TEMPLATE-README-GUIDE.md in packages/ directory
+- **FR-127**: Package template MUST include: standard structure, plugin.cfg, plugin.gd, README sections, example code
+- **FR-128**: Package creation script MUST generate new package from template with name replacement
+- **FR-129**: Template guide MUST document: when to create new package, naming conventions, integration steps
+
+#### Testing and Quality Assurance
+
+- **FR-130**: Project MUST have load testing configuration (e.g., artillery-load-test.gd or equivalent)
+- **FR-131**: Load testing MUST simulate: 10, 50, 100, 500 concurrent users with realistic scenarios
+- **FR-132**: Load testing MUST measure: response times, throughput, error rates, resource usage
+- **FR-133**: Project MUST have pre-commit validation hooks (validate code style, documentation sync, tests pass)
+- **FR-134**: Project MUST have metrics collection system for monitoring: CPU, memory, network, database performance
+- **FR-135**: Metrics MUST be exportable to standard monitoring tools (Prometheus, Grafana compatible)
+
 ## Architecture & Patterns
 
 ### Monorepo Structure vs. Godot Addon System
@@ -449,23 +547,608 @@ As a developer, I need the first feature (Clusters) fully implemented so I can u
 ```
 universo-platformo-godot/
 ├── packages/
+│   # Core Feature Packages
 │   ├── auth-frt/base/          # Authentication frontend (UI scenes)
 │   ├── auth-srv/base/          # Authentication backend (API, JWT logic)
 │   ├── clusters-frt/base/      # Clusters feature frontend
 │   ├── clusters-srv/base/      # Clusters feature backend
-│   └── database-srv/base/      # Database abstraction layer
+│   ├── metaverses-frt/base/    # Metaverses feature frontend
+│   ├── metaverses-srv/base/    # Metaverses feature backend
+│   ├── spaces-frt/base/        # Spaces feature frontend
+│   ├── spaces-srv/base/        # Spaces feature backend
+│   ├── uniks-frt/base/         # Uniks (unique resources) frontend
+│   ├── uniks-srv/base/         # Uniks backend
+│   ├── profile-frt/base/       # User profile management frontend
+│   ├── profile-srv/base/       # User profile management backend
+│   │
+│   # Shared Utility Packages
+│   ├── universo-utils/base/    # Shared utility functions (validation, math, env)
+│   ├── universo-types/base/    # Shared type definitions and schemas
+│   ├── universo-i18n/base/     # Centralized internationalization
+│   ├── universo-api-client/base/  # Centralized HTTP client
+│   ├── universo-template-godot/base/  # Reusable UI components (Material Design)
+│   ├── universo-rest-docs/base/  # REST API documentation generator
+│   │
+│   # Advanced Feature Packages
+│   ├── analytics-frt/base/     # Usage analytics and metrics UI
+│   ├── space-builder-frt/base/ # AI-assisted flow creation UI
+│   ├── space-builder-srv/base/ # AI-assisted flow creation backend
+│   ├── publish-frt/base/       # Publishing system frontend
+│   │   └── exporters/          # Technology-specific exporters (minipackages)
+│   │       ├── web-html5/      # Web HTML5 exporter
+│   │       ├── desktop-native/ # Desktop native exporter
+│   │       └── mobile-android/ # Mobile Android exporter
+│   ├── publish-srv/base/       # Publishing system backend
+│   ├── updl/base/              # Universal Platform Description Language
+│   │   ├── parser/             # UPDL parser
+│   │   ├── validator/          # Schema validator
+│   │   ├── transformer/        # UPDL ↔ Godot transformer
+│   │   └── serializer/         # UPDL serializer
+│   ├── multiplayer-server-srv/base/  # Dedicated multiplayer server
+│   │
+│   # Template Packages
+│   ├── template-quiz/base/     # Quiz template for reusable patterns
+│   ├── template-mmoomm/base/   # MMOOMM template
+│   │
+│   # Package Creation Templates
+│   ├── TEMPLATE-README.md      # Template for package README
+│   ├── TEMPLATE-README-GUIDE.md # Guide for creating packages
+│   └── package-template/       # Template structure for new packages
+│       └── base/
+│           ├── plugin.cfg
+│           ├── plugin.gd
+│           ├── scripts/
+│           ├── scenes/
+│           ├── README.md
+│           └── README-RU.md
+│
 ├── scenes/                     # Shared scenes (Main, ServerMain)
 ├── scripts/                    # Global autoload scripts
-│   ├── config.gd              # Config autoload
-│   ├── database_manager.gd    # DatabaseManager autoload
-│   └── network_manager.gd     # NetworkManager autoload
+│   ├── autoload/
+│   │   ├── config.gd              # Config autoload
+│   │   ├── database_manager.gd    # DatabaseManager autoload
+│   │   ├── network_manager.gd     # NetworkManager autoload
+│   │   ├── api_client.gd          # Global API client
+│   │   └── i18n_manager.gd        # Internationalization manager
+│   └── utils/                  # Shared utility scripts (loaded by packages)
 ├── assets/                     # Shared assets
 ├── themes/                     # UI themes (Material Design inspired)
-├── translations/               # i18n translation files
+├── translations/               # i18n translation files (.en.translation, .ru.translation)
 ├── migrations/                 # Database schema migrations
+├── tests/                      # Test suite
+│   ├── unit/                   # Unit tests
+│   ├── integration/            # Integration tests
+│   └── load/                   # Load testing scenarios
+├── metrics/                    # Metrics and monitoring
+│   └── prometheus/             # Prometheus exporters
 ├── .env.example               # Environment variable template
 ├── config.json                # Application configuration
+├── artillery-load-test.gd     # Load testing configuration
 └── project.godot              # Godot project configuration
+```
+
+### Package Architecture Patterns from React Version
+
+#### Shared Utility Pattern (universo-utils)
+
+**Purpose**: Centralize common utility functions to avoid duplication across packages.
+
+**GDScript Implementation**:
+```gdscript
+# scripts/utils/validation.gd
+class_name ValidationUtils
+extends RefCounted
+
+static func is_valid_email(email: String) -> bool:
+    var regex = RegEx.new()
+    regex.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
+    return regex.search(email) != null
+
+static func is_valid_uuid(uuid: String) -> bool:
+    var regex = RegEx.new()
+    regex.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+    return regex.search(uuid) != null
+
+# scripts/utils/serialization.gd
+class_name SerializationUtils
+extends RefCounted
+
+static func to_json_safe(data: Variant) -> String:
+    return JSON.stringify(data, "\t")
+
+static func from_json_safe(json_string: String) -> Variant:
+    var json = JSON.new()
+    var error = json.parse(json_string)
+    if error == OK:
+        return json.data
+    return null
+
+# scripts/utils/math_utils.gd
+class_name MathUtils
+extends RefCounted
+
+static func clamp_to_range(value: float, min_val: float, max_val: float) -> float:
+    return clamp(value, min_val, max_val)
+
+static func lerp_smooth(from: float, to: float, weight: float, delta: float) -> float:
+    return lerp(from, to, 1.0 - exp(-weight * delta))
+```
+
+**Usage in Packages**:
+```gdscript
+# In any package script
+var is_valid = ValidationUtils.is_valid_email("user@example.com")
+var json_str = SerializationUtils.to_json_safe(data)
+```
+
+#### Type Definitions Pattern (universo-types)
+
+**Purpose**: Define shared data structures and schemas for type safety and validation.
+
+**GDScript Implementation** (using class_name for types):
+```gdscript
+# scripts/types/cluster_types.gd
+class_name ClusterTypes
+extends RefCounted
+
+class Cluster:
+    var id: String
+    var name: String
+    var description: String
+    var owner_id: String
+    var created_at: int
+    var updated_at: int
+    
+    func _init(data: Dictionary = {}):
+        id = data.get("id", "")
+        name = data.get("name", "")
+        description = data.get("description", "")
+        owner_id = data.get("owner_id", "")
+        created_at = data.get("created_at", Time.get_unix_time_from_system())
+        updated_at = data.get("updated_at", Time.get_unix_time_from_system())
+    
+    func to_dict() -> Dictionary:
+        return {
+            "id": id,
+            "name": name,
+            "description": description,
+            "owner_id": owner_id,
+            "created_at": created_at,
+            "updated_at": updated_at
+        }
+    
+    func validate() -> Dictionary:
+        var errors = []
+        if name.is_empty():
+            errors.append("Name is required")
+        if name.length() > 255:
+            errors.append("Name must be less than 255 characters")
+        if owner_id.is_empty():
+            errors.append("Owner ID is required")
+        return {
+            "valid": errors.is_empty(),
+            "errors": errors
+        }
+```
+
+#### API Client Pattern (universo-api-client)
+
+**Purpose**: Centralized HTTP client with automatic error handling, auth injection, and retry logic.
+
+**GDScript Implementation**:
+```gdscript
+# scripts/autoload/api_client.gd
+extends Node
+
+const MAX_RETRIES = 3
+const RETRY_DELAYS = [1.0, 2.0, 4.0]  # Exponential backoff
+
+var base_url: String = ""
+var auth_token: String = ""
+var request_interceptors: Array[Callable] = []
+var response_interceptors: Array[Callable] = []
+
+func _ready():
+    base_url = Config.get_value("api.base_url", "http://localhost:8080")
+
+func set_auth_token(token: String) -> void:
+    auth_token = token
+
+func get_request(endpoint: String, params: Dictionary = {}) -> Dictionary:
+    return _request("GET", endpoint, params)
+
+func post_request(endpoint: String, body: Dictionary = {}) -> Dictionary:
+    return _request("POST", endpoint, body)
+
+func put_request(endpoint: String, body: Dictionary = {}) -> Dictionary:
+    return _request("PUT", endpoint, body)
+
+func delete_request(endpoint: String) -> Dictionary:
+    return _request("DELETE", endpoint)
+
+func _request(method: String, endpoint: String, data: Dictionary = {}, retry_count: int = 0) -> Dictionary:
+    var http = HTTPRequest.new()
+    add_child(http)
+    
+    var url = base_url + endpoint
+    if method == "GET" and not data.is_empty():
+        url += "?" + _dict_to_query_string(data)
+    
+    var headers = [
+        "Content-Type: application/json",
+        "Accept: application/json"
+    ]
+    
+    if not auth_token.is_empty():
+        headers.append("Authorization: Bearer " + auth_token)
+    
+    # Apply request interceptors
+    for interceptor in request_interceptors:
+        var result = interceptor.call(method, url, headers, data)
+        if result.has("headers"):
+            headers = result.headers
+        if result.has("data"):
+            data = result.data
+    
+    var body = ""
+    if method in ["POST", "PUT", "PATCH"] and not data.is_empty():
+        body = JSON.stringify(data)
+    
+    var error = http.request(url, headers, HTTPClient.METHOD_GET if method == "GET" else HTTPClient.METHOD_POST, body)
+    
+    if error != OK:
+        http.queue_free()
+        return {"success": false, "error": "Request failed to initiate", "code": error}
+    
+    var response = await http.request_completed
+    http.queue_free()
+    
+    var result = response[0]
+    var response_code = response[1]
+    var response_headers = response[2]
+    var response_body = response[3]
+    
+    var parsed_response = _parse_response(response_body)
+    
+    # Apply response interceptors
+    for interceptor in response_interceptors:
+        parsed_response = interceptor.call(response_code, parsed_response)
+    
+    # Retry logic for 5xx errors or network errors
+    if response_code >= 500 or result != HTTPRequest.RESULT_SUCCESS:
+        if retry_count < MAX_RETRIES:
+            await get_tree().create_timer(RETRY_DELAYS[retry_count]).timeout
+            return await _request(method, endpoint, data, retry_count + 1)
+    
+    return {
+        "success": response_code >= 200 and response_code < 300,
+        "code": response_code,
+        "data": parsed_response,
+        "error": parsed_response.get("error", "") if response_code >= 400 else ""
+    }
+
+func _dict_to_query_string(params: Dictionary) -> String:
+    var parts = []
+    for key in params:
+        parts.append(str(key) + "=" + str(params[key]))
+    return "&".join(parts)
+
+func _parse_response(body: PackedByteArray) -> Variant:
+    var json = JSON.new()
+    var error = json.parse(body.get_string_from_utf8())
+    if error == OK:
+        return json.data
+    return {}
+```
+
+#### Internationalization Package Pattern (universo-i18n)
+
+**Purpose**: Centralized translation management with language switching and pluralization.
+
+**GDScript Implementation**:
+```gdscript
+# scripts/autoload/i18n_manager.gd
+extends Node
+
+const SUPPORTED_LOCALES = ["en", "ru"]
+var current_locale: String = "en"
+var translations: Dictionary = {}
+
+func _ready():
+    _load_translations()
+    current_locale = Config.get_value("ui.locale", "en")
+    TranslationServer.set_locale(current_locale)
+
+func _load_translations():
+    for locale in SUPPORTED_LOCALES:
+        var translation = Translation.new()
+        translation.locale = locale
+        TranslationServer.add_translation(translation)
+        
+        # Load translation files
+        var path = "res://translations/%s.translation" % locale
+        if ResourceLoader.exists(path):
+            var loaded = ResourceLoader.load(path) as Translation
+            if loaded:
+                TranslationServer.add_translation(loaded)
+
+func set_locale(locale: String) -> void:
+    if locale in SUPPORTED_LOCALES:
+        current_locale = locale
+        TranslationServer.set_locale(locale)
+        Config.set_value("ui.locale", locale)
+        locale_changed.emit(locale)
+
+func get_current_locale() -> String:
+    return current_locale
+
+func tr_with_context(key: String, context: String = "") -> String:
+    return TranslationServer.translate(key, context)
+
+signal locale_changed(locale: String)
+```
+
+#### Publishing System with Exporter Pattern
+
+**Purpose**: Export Godot projects to multiple platforms with technology-specific exporters.
+
+**Architecture**:
+```
+publish-frt/base/
+├── exporters/                  # Minipackages for each export target
+│   ├── web_html5/
+│   │   ├── exporter.gd        # HTML5 export logic
+│   │   ├── template.html      # HTML template
+│   │   └── config.json        # Exporter configuration
+│   ├── desktop_native/
+│   │   ├── exporter.gd        # Desktop export logic
+│   │   └── config.json
+│   └── mobile_android/
+│       ├── exporter.gd        # Android export logic
+│       └── config.json
+├── ui/
+│   ├── export_dialog.tscn
+│   └── export_dialog.gd
+└── api/
+    └── publication_api.gd
+```
+
+**Base Exporter Interface**:
+```gdscript
+# publish-frt/base/exporters/base_exporter.gd
+class_name BaseExporter
+extends RefCounted
+
+func validate() -> Dictionary:
+    # Override: Validate export requirements
+    return {"valid": false, "errors": ["Not implemented"]}
+
+func generate() -> Dictionary:
+    # Override: Generate export files
+    return {"success": false, "error": "Not implemented"}
+
+func package() -> Dictionary:
+    # Override: Package export into distributable
+    return {"success": false, "path": ""}
+
+func deploy() -> Dictionary:
+    # Override: Deploy to platform (optional)
+    return {"success": false, "error": "Not implemented"}
+```
+
+**Example HTML5 Exporter**:
+```gdscript
+# publish-frt/base/exporters/web_html5/exporter.gd
+class_name HTML5Exporter
+extends BaseExporter
+
+func validate() -> Dictionary:
+    # Check if HTML5 export template is installed
+    var template_path = "res://.godot/export_templates/html5/"
+    if not DirAccess.dir_exists_absolute(template_path):
+        return {
+            "valid": false,
+            "errors": ["HTML5 export template not installed"]
+        }
+    return {"valid": true, "errors": []}
+
+func generate() -> Dictionary:
+    # Use Godot's export system
+    var export_preset = _get_html5_preset()
+    if not export_preset:
+        return {"success": false, "error": "HTML5 export preset not configured"}
+    
+    var output_path = "user://exports/web/index.html"
+    var error = EditorExportPlatform.export_project(export_preset, output_path, true)
+    
+    if error != OK:
+        return {"success": false, "error": "Export failed with code: " + str(error)}
+    
+    return {"success": true, "path": output_path}
+
+func package() -> Dictionary:
+    # ZIP the exported files
+    var export_dir = "user://exports/web/"
+    var zip_path = "user://exports/web_export.zip"
+    
+    # Use ZIPPacker to create archive
+    var zip = ZIPPacker.new()
+    zip.open(zip_path)
+    
+    var dir = DirAccess.open(export_dir)
+    for file in dir.get_files():
+        zip.start_file(file)
+        var file_data = FileAccess.get_file_as_bytes(export_dir + file)
+        zip.write_file(file_data)
+        zip.close_file()
+    
+    zip.close()
+    
+    return {"success": true, "path": zip_path}
+
+func _get_html5_preset() -> EditorExportPreset:
+    # Find or create HTML5 export preset
+    # This is editor-only API, adapt for runtime if needed
+    return null
+```
+
+#### UPDL (Universal Platform Description Language) Pattern
+
+**Purpose**: Describe scenes in technology-agnostic JSON format for cross-platform export.
+
+**UPDL Schema Example**:
+```json
+{
+  "version": "1.0",
+  "scene": {
+    "name": "MainScene",
+    "entities": [
+      {
+        "id": "entity_001",
+        "name": "Player",
+        "transform": {
+          "position": [0, 0, 0],
+          "rotation": [0, 0, 0],
+          "scale": [1, 1, 1]
+        },
+        "components": [
+          {
+            "type": "Mesh",
+            "properties": {
+              "mesh": "res://models/player.glb",
+              "material": "res://materials/player_mat.tres"
+            }
+          },
+          {
+            "type": "Script",
+            "properties": {
+              "script": "res://scripts/player_controller.gd"
+            }
+          },
+          {
+            "type": "PhysicsBody",
+            "properties": {
+              "mass": 1.0,
+              "gravity_scale": 1.0
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "parent": "entity_001",
+        "child": "entity_002",
+        "type": "parent_child"
+      }
+    ]
+  }
+}
+```
+
+**UPDL Processor**:
+```gdscript
+# packages/updl/base/scripts/updl_processor.gd
+class_name UPDLProcessor
+extends RefCounted
+
+func parse(updl_json: String) -> Dictionary:
+    var json = JSON.new()
+    var error = json.parse(updl_json)
+    if error != OK:
+        return {"success": false, "error": "Invalid JSON"}
+    return {"success": true, "data": json.data}
+
+func validate(updl_data: Dictionary) -> Dictionary:
+    var errors = []
+    if not updl_data.has("version"):
+        errors.append("Missing version field")
+    if not updl_data.has("scene"):
+        errors.append("Missing scene field")
+    # Add more validation rules
+    return {"valid": errors.is_empty(), "errors": errors}
+
+func to_godot_scene(updl_data: Dictionary) -> Node:
+    # Convert UPDL to Godot scene tree
+    var root = Node.new()
+    root.name = updl_data.scene.get("name", "Scene")
+    
+    for entity_data in updl_data.scene.get("entities", []):
+        var entity_node = _create_entity_from_updl(entity_data)
+        root.add_child(entity_node)
+    
+    return root
+
+func from_godot_scene(scene: Node) -> Dictionary:
+    # Convert Godot scene to UPDL
+    var updl = {
+        "version": "1.0",
+        "scene": {
+            "name": scene.name,
+            "entities": []
+        }
+    }
+    
+    for child in scene.get_children():
+        var entity_data = _entity_to_updl(child)
+        updl.scene.entities.append(entity_data)
+    
+    return updl
+
+func _create_entity_from_updl(entity_data: Dictionary) -> Node:
+    var node = Node3D.new() if entity_data.has("transform") else Node.new()
+    node.name = entity_data.get("name", "Entity")
+    
+    # Apply transform if present
+    if entity_data.has("transform") and node is Node3D:
+        var t = entity_data.transform
+        node.position = Vector3(t.position[0], t.position[1], t.position[2])
+        node.rotation_degrees = Vector3(t.rotation[0], t.rotation[1], t.rotation[2])
+        node.scale = Vector3(t.scale[0], t.scale[1], t.scale[2])
+    
+    # Add components
+    for component in entity_data.get("components", []):
+        _add_component_to_node(node, component)
+    
+    return node
+
+func _entity_to_updl(node: Node) -> Dictionary:
+    var entity = {
+        "id": str(node.get_instance_id()),
+        "name": node.name,
+        "components": []
+    }
+    
+    if node is Node3D:
+        entity["transform"] = {
+            "position": [node.position.x, node.position.y, node.position.z],
+            "rotation": [node.rotation_degrees.x, node.rotation_degrees.y, node.rotation_degrees.z],
+            "scale": [node.scale.x, node.scale.y, node.scale.z]
+        }
+    
+    # Extract components
+    # Add logic to identify and serialize components
+    
+    return entity
+
+func _add_component_to_node(node: Node, component: Dictionary) -> void:
+    var type = component.get("type", "")
+    var properties = component.get("properties", {})
+    
+    match type:
+        "Mesh":
+            if node is Node3D:
+                var mesh_instance = MeshInstance3D.new()
+                if properties.has("mesh"):
+                    mesh_instance.mesh = load(properties.mesh)
+                node.add_child(mesh_instance)
+        "Script":
+            if properties.has("script"):
+                var script = load(properties.script)
+                node.set_script(script)
+        "PhysicsBody":
+            # Add physics body component
+            pass
 ```
 
 ### Material UI Equivalent Pattern
@@ -620,6 +1303,190 @@ func validate_token(token: String) -> Dictionary:
 ## Not Applicable
 - [ ] React-specific optimizations (memo, useMemo)
 - [ ] Express middleware patterns
+```
+
+### Dependency Version Management Pattern
+
+**React Version Uses**: PNPM Catalog feature for centralized dependency version management
+
+**Godot Adaptation**: Create `dependency_catalog.gd` for tracking third-party addon versions
+
+**Purpose**: Single source of truth for addon versions to ensure consistency across project
+
+**Implementation**:
+```gdscript
+# scripts/dependency_catalog.gd
+class_name DependencyCatalog
+extends RefCounted
+
+const CATALOG = {
+    # Testing
+    "gut": {
+        "version": "9.3.0",
+        "url": "https://github.com/bitwes/Gut",
+        "description": "Godot Unit Testing framework"
+    },
+    
+    # HTTP Server (if using third-party)
+    "gdserv": {
+        "version": "2.0.0",
+        "url": "https://github.com/you-win/gdserv",
+        "description": "HTTP server for Godot"
+    },
+    
+    # UI Components
+    "material_maker": {
+        "version": "1.3.0",
+        "url": "https://github.com/RodZill4/material-maker",
+        "description": "Material creation tools"
+    },
+    
+    # Utilities
+    "json_beautifier": {
+        "version": "1.0.0",
+        "url": "https://github.com/Beepyy/JSON-Beautifier",
+        "description": "JSON formatting utility"
+    }
+}
+
+static func get_addon_info(addon_name: String) -> Dictionary:
+    return CATALOG.get(addon_name, {})
+
+static func get_addon_version(addon_name: String) -> String:
+    var info = get_addon_info(addon_name)
+    return info.get("version", "unknown")
+
+static func list_addons() -> Array:
+    return CATALOG.keys()
+
+static func validate_addon_version(addon_name: String, installed_version: String) -> bool:
+    var expected_version = get_addon_version(addon_name)
+    return installed_version == expected_version
+```
+
+**Usage in project.godot**:
+```ini
+[addons]
+gut = { version = "9.3.0", enabled = true }
+gdserv = { version = "2.0.0", enabled = true }
+```
+
+**Documentation in addon installation guide** (`docs/addon-management.md`):
+```markdown
+# Addon Management
+
+All third-party addons are cataloged in `scripts/dependency_catalog.gd`.
+
+## Installing a New Addon
+
+1. Find addon in catalog: `DependencyCatalog.get_addon_info("gut")`
+2. Download from URL
+3. Extract to `addons/{addon_name}/`
+4. Enable in Project Settings → Plugins
+5. Verify version matches catalog
+
+## Updating an Addon
+
+1. Update version in `dependency_catalog.gd`
+2. Download new version
+3. Replace files in `addons/{addon_name}/`
+4. Test for breaking changes
+5. Update documentation if API changed
+```
+
+### Package Creation from Template Pattern
+
+**React Version Has**: TEMPLATE-README.md and TEMPLATE-README-GUIDE.md for standardized package creation
+
+**Godot Adaptation**: Create package template directory with creation script
+
+**Package Template Structure**:
+```
+packages/package-template/base/
+├── plugin.cfg
+├── plugin.gd
+├── scripts/
+│   └── example_script.gd
+├── scenes/
+│   └── example_scene.tscn
+├── resources/
+├── assets/
+├── README.md
+└── README-RU.md
+```
+
+**Creation Script**:
+```gdscript
+# tools/create_package.gd
+extends ScriptExtended
+
+func create_package(package_name: String, package_type: String) -> void:
+    # package_type: "frt" or "srv"
+    var template_dir = "res://packages/package-template/base/"
+    var target_dir = "res://packages/%s-%s/base/" % [package_name, package_type]
+    
+    # Copy template directory
+    var dir = DirAccess.open(template_dir)
+    if dir:
+        dir.make_dir_recursive(target_dir)
+        _copy_dir_recursive(template_dir, target_dir)
+        
+        # Replace placeholders in files
+        _replace_placeholders(target_dir, package_name, package_type)
+        
+        print("Package created: " + target_dir)
+    else:
+        push_error("Template directory not found")
+
+func _copy_dir_recursive(from: String, to: String) -> void:
+    var dir = DirAccess.open(from)
+    if dir:
+        dir.list_dir_begin()
+        var file_name = dir.get_next()
+        
+        while file_name != "":
+            var from_path = from + "/" + file_name
+            var to_path = to + "/" + file_name
+            
+            if dir.current_is_dir():
+                DirAccess.make_dir_absolute(to_path)
+                _copy_dir_recursive(from_path, to_path)
+            else:
+                dir.copy(from_path, to_path)
+            
+            file_name = dir.get_next()
+        
+        dir.list_dir_end()
+
+func _replace_placeholders(dir: String, package_name: String, package_type: String) -> void:
+    # Replace {PACKAGE_NAME}, {PACKAGE_TYPE}, {PACKAGE_DISPLAY_NAME} in files
+    var files_to_process = ["plugin.cfg", "README.md", "README-RU.md", "plugin.gd"]
+    
+    for file_name in files_to_process:
+        var file_path = dir + "/" + file_name
+        if FileAccess.file_exists(file_path):
+            var file = FileAccess.open(file_path, FileAccess.READ)
+            var content = file.get_as_text()
+            file.close()
+            
+            # Replace placeholders
+            content = content.replace("{PACKAGE_NAME}", package_name)
+            content = content.replace("{PACKAGE_TYPE}", package_type)
+            content = content.replace("{PACKAGE_DISPLAY_NAME}", _to_display_name(package_name))
+            
+            # Write back
+            file = FileAccess.open(file_path, FileAccess.WRITE)
+            file.store_string(content)
+            file.close()
+
+func _to_display_name(package_name: String) -> String:
+    return package_name.capitalize()
+```
+
+**Usage**:
+```bash
+# From command line (if script exposed as tool)
+godot --script tools/create_package.gd --package-name metaverses --package-type frt
 ```
 
 ## Dependencies & Assumptions
