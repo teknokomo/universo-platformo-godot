@@ -335,6 +335,18 @@ Brief description of changes made.
 
 ## Package Development
 
+> **⚠️ MANDATORY**: ALL feature functionality MUST be implemented as packages in the `packages/` directory. This is a non-negotiable architectural requirement. Implementation outside of `packages/` violates the project's core principles.
+
+### Package Architecture Requirements
+
+**Constitutional Requirement**: Every feature must be organized into self-contained packages with:
+- Frontend functionality in `packages/{feature}-frt/base/`
+- Backend functionality in `packages/{feature}-srv/base/`
+- Shared code in dedicated packages (e.g., `packages/universo-types/`)
+- NO feature logic in root `scripts/` or `scenes/` directories
+
+**Future Migration**: Packages will be extracted into separate repositories as the project matures. Design your packages to be independently deployable.
+
 ### Creating a New Package
 
 1. **Create directory structure**:

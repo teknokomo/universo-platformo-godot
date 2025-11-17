@@ -1,104 +1,229 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Project Setup & Foundation
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Branch**: `001-project-setup` | **Date**: 2025-11-17 | **Spec**: [specs/001-project-setup/](.)
+**Input**: Initial project setup and modular architecture establishment
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Establish the foundation for Universo Platformo Godot with a modular, package-based architecture following Godot Engine's native addon system. This includes setting up core infrastructure, base documentation, and the first feature package (Clusters) as a template for future development. The implementation strictly follows the constitutional requirement that ALL functionality must be organized in self-contained packages within the `packages/` directory.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: Godot Engine 4.3+ (minimum), GDScript  
+**Primary Dependencies**: 
+- REST API Server addon (godot-rest-api-server)
+- Supabase addon (supabase-community/godot-engine.supabase)
+- JWT library (godot-engine.jwt)
+- GUT testing framework (bitwes/Gut)
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Storage**: Supabase (PostgreSQL) via REST API with abstraction layer for future database support  
+**Testing**: GUT (Godot Unit Test) with CLI and editor support for TDD workflow  
+**Target Platform**: Desktop (Windows/Linux/Mac) + Server (headless Godot)  
+**Project Type**: Full-stack Godot monorepo with package-based modular architecture  
+**Performance Goals**: 100-500 concurrent users per server instance, <200ms p95 API latency  
+**Constraints**: <100MB memory for headless server, Godot 4.3+ compatibility  
+**Scale/Scope**: Initial implementation with 3-5 packages (clusters-frt, clusters-srv, universo-types), extensible to 20+ packages
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### Core Principles Compliance
+
+✅ **I. Godot-Native Architecture**: All components use Godot's native capabilities and GDScript  
+✅ **II. Package-Based Modularity (NON-NEGOTIABLE)**: ALL functionality in `packages/` directory  
+✅ **III. Bilingual Documentation**: English and Russian with exact structural parity  
+✅ **IV. Test-First Development**: TDD with GUT framework  
+✅ **V. Database Abstraction**: Supabase with abstraction layer for future expansion  
+✅ **VI. Progressive Feature Development**: Clusters feature first, then replication pattern  
+✅ **VII. GDScript Best Practices**: Type hints, signals, composition over inheritance  
+✅ **VIII. Security-First Design**: JWT authentication, input validation, RBAC  
+
+### Mandatory Package-Based Modularity Check
+
+> **⚠️ CRITICAL GATE**: All functionality must be in `packages/` directory.
+
+- [x] ALL feature functionality is planned for implementation in `packages/` directory
+- [x] Frontend and backend components are separated into `-frt` and `-srv` packages
+- [x] Each package has a `base/` subdirectory for core implementation
+- [x] Shared code is planned in dedicated packages (universo-types, universo-utils)
+- [x] NO feature logic is planned for root `scripts/` or `scenes/` directories (only autoloads)
+- [x] Package structure follows Godot addon system with `plugin.cfg` and `plugin.gd`
+
+**All checkboxes are checked - plan complies with constitutional requirements.**
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+specs/001-project-setup/
+├── plan.md              # This file (implementation plan)
+├── research.md          # Phase 0 output (COMPLETE)
+├── data-model.md        # Phase 1 output (COMPLETE)
+├── quickstart.md        # Phase 1 output (COMPLETE)
+└── contracts/           # Phase 1 output (API contracts)
+    ├── auth-api.yaml
+    ├── clusters-api.yaml
+    └── domains-api.yaml
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+# Godot monorepo with mandatory package-based structure
+packages/
+├── clusters-frt/              # Clusters frontend package
+│   └── base/
+│       ├── scenes/            # UI scenes for clusters
+│       ├── scripts/           # Client-side logic
+│       │   ├── cluster_list.gd
+│       │   ├── cluster_detail.gd
+│       │   └── cluster_create.gd
+│       ├── resources/         # UI themes and resources
+│       ├── plugin.cfg         # Plugin metadata
+│       ├── plugin.gd          # Plugin entry point
+│       ├── README.md          # English documentation
+│       └── README-RU.md       # Russian documentation
+│
+├── clusters-srv/              # Clusters backend package
+│   └── base/
+│       ├── scripts/           # Server-side logic
+│       │   ├── cluster_service.gd
+│       │   ├── domain_service.gd
+│       │   └── resource_service.gd
+│       ├── api/               # REST API endpoints
+│       │   ├── clusters_endpoint.gd
+│       │   ├── domains_endpoint.gd
+│       │   └── resources_endpoint.gd
+│       ├── models/            # Data models
+│       │   ├── cluster.gd
+│       │   ├── domain.gd
+│       │   └── resource.gd
+│       ├── plugin.cfg         # Plugin metadata
+│       ├── plugin.gd          # Plugin entry point
+│       ├── README.md          # English documentation
+│       └── README-RU.md       # Russian documentation
+│
+├── universo-types/            # Shared types package
+│   └── base/
+│       ├── scripts/           # Common data models
+│       │   ├── user.gd
+│       │   ├── session.gd
+│       │   ├── role.gd
+│       │   └── permission.gd
+│       ├── plugin.cfg         # Plugin metadata
+│       ├── plugin.gd          # Plugin entry point
+│       ├── README.md          # English documentation
+│       └── README-RU.md       # Russian documentation
+│
+└── universo-utils/            # Shared utilities package
+    └── base/
+        ├── scripts/           # Utility functions
+        │   ├── validator.gd
+        │   ├── logger.gd
+        │   └── crypto.gd
+        ├── plugin.cfg         # Plugin metadata
+        ├── plugin.gd          # Plugin entry point
+        ├── README.md          # English documentation
+        └── README-RU.md       # Russian documentation
+
+# Repository root (ONLY infrastructure files, NO feature logic)
+scenes/
+└── main.tscn                  # Main entry scene ONLY
+
+scripts/
+└── autoload/                  # ONLY global singletons
+    ├── config.gd              # Configuration manager
+    ├── database_manager.gd    # Database abstraction
+    ├── network_manager.gd     # Network/multiplayer manager
+    └── auth_manager.gd        # Authentication manager
 
 tests/
-├── contract/
-├── integration/
-└── unit/
+├── unit/                      # Unit tests for packages
+│   ├── test_cluster_service.gd
+│   ├── test_domain_service.gd
+│   └── test_auth_manager.gd
+├── integration/               # Integration tests
+│   ├── test_clusters_api.gd
+│   └── test_database.gd
+└── contract/                  # API contract tests
+    └── test_clusters_contract.gd
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+.github/
+├── instructions/              # GitHub workflow instructions
+└── workflows/                 # CI/CD workflows
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
+.specify/
+├── memory/                    # Project memory (constitution)
+├── templates/                 # Planning templates
+└── scripts/                   # Planning scripts
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+project.godot                  # Godot project configuration
+config.json                    # Application configuration
+.env.example                   # Environment variables template
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: We use Option 4 (Godot monorepo with package-based structure) as this is mandatory per the constitution. All features are implemented as Godot addon packages in `packages/`, with clear separation between frontend (`-frt`) and backend (`-srv`) components. Shared code goes in dedicated packages (`universo-types`, `universo-utils`). The repository root contains ONLY infrastructure files: main entry scene, autoload singletons, tests, and configuration.
 
 ## Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+No constitutional violations. All requirements are met:
+- Package-based modularity strictly enforced
+- Godot-native architecture throughout
+- Bilingual documentation planned
+- Test-first development approach
+- Database abstraction layer included
+- Security-first design with JWT and RBAC
+
+## Implementation Phases
+
+### Phase 0: Research (COMPLETE ✅)
+- All technical clarifications resolved
+- Best practices documented for Godot full-stack development
+- See `research.md` for complete findings
+
+### Phase 1: Design & Contracts (COMPLETE ✅)
+- Data models defined for infrastructure and Clusters feature
+- Entity relationships established
+- Database schema created
+- See `data-model.md` for complete design
+
+### Phase 2: Initial Implementation (CURRENT)
+- Set up package structure in `packages/`
+- Implement base packages (universo-types, universo-utils)
+- Create autoload singletons (Config, DatabaseManager, NetworkManager, AuthManager)
+- Implement first feature: Clusters (clusters-frt, clusters-srv)
+- Write comprehensive tests
+- Create bilingual documentation
+
+### Phase 3: Testing & Validation
+- Unit tests for all packages
+- Integration tests for API and database
+- Contract tests for API compliance
+- Manual testing of UI and workflows
+
+### Phase 4: Documentation & CI/CD
+- Complete README files in English and Russian
+- API documentation
+- Developer guides
+- Setup GitHub Actions for automated testing
+
+## Reference Implementation
+
+The package organization and shared entity patterns are inspired by [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react), adapted for Godot's native addon system. Key differences:
+- Godot addon system replaces PNPM workspaces
+- `plugin.cfg` and `plugin.gd` replace `package.json`
+- GDScript replaces React/Express stack
+- Same modular philosophy and future repository extraction strategy
+
+## Next Steps
+
+1. Implement base packages structure
+2. Create autoload singletons
+3. Implement Clusters feature packages
+4. Write tests for all components
+5. Create bilingual documentation
+6. Setup CI/CD pipeline
