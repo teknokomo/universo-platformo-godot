@@ -473,10 +473,34 @@ As a developer, I need the first feature (Clusters) fully implemented so I can u
 #### Analytics Package
 
 - **FR-095**: Project SHOULD have analytics-frt package for usage analytics and metrics
+- **FR-095a**: Analytics package structure MUST follow: packages/analytics-frt/base/
 - **FR-096**: Analytics MUST track: page views, feature usage, error rates, performance metrics
+- **FR-096a**: Analytics MUST implement EventTracker class for capturing user interactions (clicks, navigations, feature usage)
+- **FR-096b**: Analytics MUST implement PerformanceMonitor class for FPS, memory usage, load times
+- **FR-096c**: Analytics MUST implement ErrorReporter class for exception tracking with stack traces
 - **FR-097**: Analytics MUST provide dashboard UI with charts (line, bar, pie) using visualization library
+- **FR-097a**: Dashboard scenes MUST include: AnalyticsDashboard.tscn (main), UsageChart.tscn, PerformanceChart.tscn, ErrorList.tscn
+- **FR-097b**: Charts MUST use Godot's native 2D drawing API or custom Control nodes for visualization
+- **FR-097c**: Dashboard MUST support time range filters: Last Hour, Last Day, Last Week, Last Month, Custom Range
 - **FR-098**: Analytics MUST respect user privacy settings (opt-in/opt-out)
+- **FR-098a**: First run MUST show analytics consent dialog with clear explanation of data collected
+- **FR-098b**: User MUST be able to disable analytics at any time through Settings menu
+- **FR-098c**: When analytics disabled, NO data collection MUST occur (verified through code audit)
 - **FR-099**: Analytics data MUST be stored separately from application data
+- **FR-099a**: Analytics MUST use separate database table or Supabase project for data isolation
+- **FR-099b**: Analytics data retention MUST be configurable (default: 90 days, max: 365 days)
+- **FR-099c**: Analytics data MUST be anonymized (no personally identifiable information stored)
+
+#### Projects vs Spaces Distinction
+
+- **FR-099d**: Project SHOULD distinguish between Projects (high-level) and Spaces (canvas-level)
+- **FR-099e**: Projects package (if implemented) MUST organize multiple Spaces into project containers
+- **FR-099f**: Projects entity MUST have: id, name, description, owner_id, space_ids[], created_at, updated_at
+- **FR-099g**: Each Space MUST belong to exactly one Project (project_id foreign key)
+- **FR-099h**: Projects UI MUST provide: project list, project detail with embedded spaces list, project creation wizard
+- **FR-099i**: Projects vs Spaces hierarchy: Projects > Spaces > Nodes/Canvases (3-level structure)
+- **FR-099j**: Initial implementation MAY defer Projects package and use Spaces as top-level containers
+- **FR-099k**: When Projects deferred, migration path MUST be documented for future Projects integration
 
 #### Space Builder (AI-Assisted Creation)
 
@@ -510,11 +534,26 @@ As a developer, I need the first feature (Clusters) fully implemented so I can u
 #### Multiplayer Server Package
 
 - **FR-120**: Project SHOULD have multiplayer-server-srv package for dedicated multiplayer functionality
+- **FR-120a**: Multiplayer implementation MUST use Godot's native high-level multiplayer API (SceneMultiplayer)
+- **FR-120b**: Multiplayer server MUST be headless Godot instance running with --server flag
 - **FR-121**: Multiplayer server MUST support room-based architecture (create, join, leave rooms)
+- **FR-121a**: Room system MUST use MultiplayerSpawner and MultiplayerSynchronizer for entity replication
+- **FR-121b**: Each room MUST be isolated Godot scene loaded dynamically on room creation
+- **FR-121c**: Room manager MUST track: room_id, player_ids[], room_state (waiting, active, ended), max_players, created_at
 - **FR-122**: Multiplayer server MUST synchronize entity state between clients in same room
+- **FR-122a**: State synchronization MUST use Godot's @rpc annotations for remote procedure calls
+- **FR-122b**: State sync frequency MUST be configurable (default: 20 ticks per second)
+- **FR-122c**: Delta compression MUST be used for bandwidth optimization (only changed properties sent)
 - **FR-123**: Multiplayer server MUST handle player authentication and authorization per room
+- **FR-123a**: Player join requests MUST validate JWT token before room admission
+- **FR-123b**: Room permissions MUST support: owner (full control), participant (standard access), spectator (read-only)
 - **FR-124**: Multiplayer server MUST implement anti-cheat measures (server authority, input validation)
+- **FR-124a**: Server MUST be authoritative for all game state changes (clients send inputs, not state)
+- **FR-124b**: Input validation MUST check: input type validity, rate limiting (max inputs per second), physics constraints
+- **FR-124c**: Server MUST implement lag compensation for fair hit detection
 - **FR-125**: Multiplayer server MUST support configurable room capacity (2-100 players per room)
+- **FR-125a**: Room capacity MUST be enforced at join time (reject if full)
+- **FR-125b**: Dynamic scaling MUST be possible (multiple server instances behind load balancer)
 
 #### Package Templates
 
@@ -526,11 +565,32 @@ As a developer, I need the first feature (Clusters) fully implemented so I can u
 #### Testing and Quality Assurance
 
 - **FR-130**: Project MUST have load testing configuration (e.g., artillery-load-test.gd or equivalent)
+- **FR-130a**: Load testing MUST be implemented in GDScript as standalone test runner script
+- **FR-130b**: Load test runner MUST support: connection simulation, request generation, response validation
+- **FR-130c**: Load test configuration MUST be JSON file: tests/load/load_test_config.json
 - **FR-131**: Load testing MUST simulate: 10, 50, 100, 500 concurrent users with realistic scenarios
+- **FR-131a**: Test scenarios MUST include: user login, cluster creation, space editing, real-time collaboration, data retrieval
+- **FR-131b**: Ramp-up strategy MUST be configurable: linear (add N users per second), exponential (double every N seconds)
+- **FR-131c**: Test duration MUST be configurable (default: 5 minutes per load level)
 - **FR-132**: Load testing MUST measure: response times, throughput, error rates, resource usage
+- **FR-132a**: Metrics collected MUST include: min/max/avg/p95/p99 response times, requests per second, error percentage
+- **FR-132b**: Resource monitoring MUST track: CPU usage %, memory usage MB, network throughput MB/s, database connections
+- **FR-132c**: Test results MUST be exported to JSON and CSV formats for analysis
+- **FR-132d**: Test report MUST generate HTML dashboard with charts visualizing performance over time
 - **FR-133**: Project MUST have pre-commit validation hooks (validate code style, documentation sync, tests pass)
+- **FR-133a**: Pre-commit hooks MUST be Git hooks in .git/hooks/ (pre-commit, pre-push)
+- **FR-133b**: Code style check MUST run gdformat or equivalent GDScript formatter
+- **FR-133c**: Documentation sync check MUST validate EN/RU README pairs have matching line counts (±2 tolerance)
+- **FR-133d**: Test execution MUST run unit tests for changed packages only (for speed)
 - **FR-134**: Project MUST have metrics collection system for monitoring: CPU, memory, network, database performance
+- **FR-134a**: Metrics system MUST implement PerformanceMetrics autoload singleton
+- **FR-134b**: Metrics MUST be collected every 10 seconds (configurable interval)
+- **FR-134c**: Metrics storage MUST support: in-memory buffer (last 1000 data points), database persistence (hourly aggregates)
+- **FR-134d**: Metrics dashboard MUST provide real-time graphs using WebSocket push updates
 - **FR-135**: Metrics MUST be exportable to standard monitoring tools (Prometheus, Grafana compatible)
+- **FR-135a**: Metrics exporter MUST provide /metrics HTTP endpoint in Prometheus text format
+- **FR-135b**: Prometheus format MUST include: metric type (counter, gauge, histogram), metric name, labels, value, timestamp
+- **FR-135c**: Grafana dashboard JSON MUST be provided in metrics/grafana/dashboard.json for quick setup
 
 ## Architecture & Patterns
 
