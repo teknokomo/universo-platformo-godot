@@ -1,520 +1,574 @@
-# Research Document: Universo Platformo Godot - Project Setup & Foundation
+# Research: Best Practices for Godot/GDScript Full-Stack Development
 
 **Feature**: 001-project-setup  
 **Date**: 2025-11-17  
 **Status**: Complete
 
-## Overview
+## Executive Summary
 
-This document consolidates research findings for establishing the foundational architecture of Universo Platformo Godot. All technical decisions and unknowns from the Technical Context have been resolved through analysis of Godot Engine capabilities, community best practices, and reference implementation patterns from Universo Platformo React.
+This research consolidates best practices, technical solutions, and patterns for implementing a full-stack application using Godot Engine 4.3+ and GDScript. The findings address all technical clarifications needed for the Universo Platformo Godot project.
 
-## Research Questions & Findings
+## Research Topics
 
-### 1. HTTP Server Implementation in Godot 4.3+
+### 1. Godot 4.3+ Full-Stack Architecture Patterns
 
-**Question**: Which HTTP server implementation should be used for the backend?
-
-**Decision**: Use Godot 4.3's native `HTTPServer` class with fallback to third-party addon if limitations encountered
+#### Decision: Scene-Based Modular Architecture with Autoload Singletons
 
 **Rationale**:
-- Godot 4.3+ introduced native `HTTPServer` class in the core engine
-- Provides built-in support for handling HTTP requests without external dependencies
-- Performance suitable for 100-500 concurrent users (target range)
-- If native implementation proves insufficient, community addons available (e.g., `godot-http-server` addon)
-- Native implementation ensures long-term compatibility and maintenance
+- Godot's scene-tree paradigm provides natural separation of concerns
+- Autoload scripts serve as global managers (Config, DatabaseManager, NetworkManager)
+- Scenes should be organized hierarchically with backend logic in separate node structures
+- Signal-based event system ensures loose coupling between components
+
+**Best Practices**:
+- Use Scenes to construct node hierarchies for clear separation (backend nodes for HTTP/WebSocket logic, separate scenes for UI)
+- Implement autoload singletons via Project Settings → Autoload for persistent global data
+- Prefer composition (multiple reusable scripts/scenes) over deeply nested inheritance
+- Keep scripts focused and single-responsibility
+- Use GDScript's type hints and static typing for better performance and error detection
+
+**Source References**:
+- GDQuest Design Patterns: https://www.gdquest.com/tutorial/godot/design-patterns/intro-to-design-patterns/
+- Godot Official Best Practices: https://docs.godotengine.org/en/stable/tutorials/best_practices/index.html
+- Godot 4.3 Developer Cheatsheet: https://themetalvortex.com/godot-4-3-developer-cheatsheet-game-architecture-workflows/
 
 **Alternatives Considered**:
-- **Third-party HTTP addon (e.g., godot-http-server)**: Rejected as primary choice because native implementation should be tried first; can serve as fallback
-- **External server proxy (Node.js/Python backend with Godot client)**: Rejected because it violates Godot-Native Architecture principle and adds deployment complexity
-- **TCP socket-based custom HTTP server**: Rejected due to implementation complexity and security concerns (manual HTTP parsing, security header management)
-
-**Implementation Notes**:
-- Native `HTTPServer` methods: `listen()`, `poll()`, `stop()`, `get_response_queue()`
-- Request handling via signals or polling mechanism
-- Response construction with status codes, headers, body
-- MIME type handling for JSON/HTML/file responses
-- Concurrent connection management with configurable limits
+- MVC/MVVM patterns: Too rigid for Godot's scene-based system
+- Monolithic single-script approach: Doesn't scale for full-stack applications
 
 ---
 
-### 2. WebSocket Real-Time Synchronization
+### 2. HTTP Server Implementation in GDScript
 
-**Question**: How should WebSocket communication be implemented for real-time entity synchronization?
-
-**Decision**: Use Godot's native `WebSocketServer` and `WebSocketPeer` classes with JSON message protocol
+#### Decision: Use REST API Server Plugin (godot-rest-api-server) with Fallback to GodotTPD
 
 **Rationale**:
-- Native WebSocket support in Godot provides reliable, performant real-time communication
-- `WebSocketServer` handles multiple client connections efficiently
-- `WebSocketPeer` represents individual client connections with lifecycle management
-- JSON message format ensures cross-platform compatibility and debugging ease
-- Signal-based event system integrates naturally with Godot's architecture
+- REST API Server plugin provides Express-like routing with minimal boilerplate
+- Native support for HTTP and HTTPS
+- Clean signal-based endpoint handling
+- Well-maintained and documented for Godot 4.x
+- Alternative: GodotTPD offers similar functionality if primary plugin has limitations
+
+**Implementation Pattern**:
+```gdscript
+# Main server node: RESTHttpServer
+# Endpoint handling: RESTApiHandler
+# Define endpoints as strings: "users/:username/slots/:slot_number"
+# Handle requests via signals with parameters as dictionaries
+```
+
+**Performance Considerations**:
+- GDScript-based servers are suitable for 100-500 concurrent users
+- For heavier loads (1000+), consider backend languages like Go or Python with Godot as client
+- HTTP is stateless; use WebSocket for real-time features
+
+**Source References**:
+- REST API Server for Godot 4.x: https://github.com/fbcosentino/godot-rest-api-server
+- GodotTPD: https://github.com/deep-entertainment/godottpd
+- Godot Asset Library: https://godotassetlibrary.com/asset/cp5f9v/rest-api-server---for-restful-apis
 
 **Alternatives Considered**:
-- **HTTP long-polling**: Rejected due to higher latency (>1s vs <100ms), increased server load, and resource inefficiency
-- **Server-Sent Events (SSE)**: Rejected because unidirectional (server→client only), would require separate HTTP requests for client→server updates
-- **Custom TCP protocol**: Rejected due to implementation complexity and lack of standard tooling for debugging/monitoring
-
-**Implementation Notes**:
-- Message format: `{"type": "entity_update", "entity": "cluster", "action": "create|update|delete", "id": "uuid", "data": {...}, "timestamp": 1699999999, "user_id": "uuid"}`
-- Connection lifecycle: connect → authenticate → subscribe to entities → receive updates → disconnect
-- Reconnection logic: exponential backoff (1s, 2s, 4s, 8s, 16s, max 30s)
-- Message queue: client-side queue (max 100 messages) during disconnection
-- Broadcast strategy: server broadcasts to all clients subscribed to entity type
+- Custom TCP implementation: Too low-level, requires HTTP protocol parsing
+- Godot's HTTPClient: Only for client-side requests, not serving
 
 ---
 
-### 3. Database Integration - Supabase REST API vs Direct PostgreSQL
+### 3. WebSocket Server Implementation
 
-**Question**: Should database access use Supabase REST API or direct PostgreSQL connection?
-
-**Decision**: Use Supabase REST API via `HTTPRequest` for initial implementation; evaluate direct PostgreSQL later
+#### Decision: Godot Native WebSocketServer/WebSocketPeer Classes
 
 **Rationale**:
-- Supabase REST API provides auth integration, row-level security, and real-time subscriptions out-of-the-box
-- `HTTPRequest` node readily available in Godot without additional dependencies
-- REST API abstracts database connection management, pooling, and security
-- Easier to implement cross-platform (desktop, web, mobile exports)
-- Future migration to direct PostgreSQL possible if performance becomes bottleneck
+- Godot 4.3+ provides robust native WebSocket support
+- Direct integration with Godot's multiplayer API
+- Low-level control over packet handling and connection management
+- No external dependencies needed
+
+**Implementation Pattern**:
+```gdscript
+var server = WebSocketServer.new()
+func _ready():
+    server.listen(8081)
+    # Handle connections via signals or polling
+func _process(delta):
+    server.poll()
+    # Handle incoming packets and connections
+```
+
+**Synchronization Patterns**:
+- **Server-Authoritative**: Server maintains game state, validates inputs, broadcasts updates
+- **Optimistic UI Updates**: Clients immediately reflect changes, mark as "pending", rollback on rejection
+- **Message Format**: JSON with structure: `{type, entity, action, id, data, timestamp, user_id}`
+- **Interpolation**: Client-side position interpolation for smooth movement (update every 10 ticks/sec)
+- **Reconnection**: Exponential backoff (1s, 2s, 4s, 8s, 16s, max 30s)
+- **Message Queue**: Queue outgoing messages during disconnection (max 100, discard oldest)
+
+**Source References**:
+- Godot WebSocket Documentation: https://docs.godotengine.org/en/stable/tutorials/networking/websocket.html
+- WebSocket Multiplayer Demo: https://godotengine.org/asset-library/asset/2801
+- Simple WebSocket Multiplayer Addon: https://godotengine.org/asset-library/asset/4320
 
 **Alternatives Considered**:
-- **Direct PostgreSQL connection via addon**: Considered for future optimization; requires third-party addon (godot-postgres), adds dependency management complexity, harder cross-platform support (especially for web exports)
-- **GraphQL with Supabase**: Rejected because REST API simpler for CRUD operations, GraphQL adds unnecessary complexity for this use case
-- **ORM/query builder library**: Rejected because limited GDScript ecosystem for ORMs, would need custom implementation
-
-**Implementation Notes**:
-- DatabaseManager class wraps HTTPRequest for all DB operations
-- Methods: `query(sql, params)`, `insert(table, data)`, `update(table, id, data)`, `delete(table, id)`, `select(table, filters)`
-- Authentication: Supabase service role key in `.env` file, JWT tokens for user-scoped operations
-- Connection pooling: HTTPRequest pool (5-20 concurrent requests)
-- Error handling: retry logic with exponential backoff (3 attempts max)
-- Transaction support: use Supabase RPC functions for multi-statement transactions
+- Node.js backend: Better for scalability but adds deployment complexity
+- ENet protocol: Better for traditional multiplayer but less browser-compatible
 
 ---
 
-### 4. Authentication Strategy Pattern - JWT Implementation
+### 4. Godot Addon System Best Practices
 
-**Question**: How should authentication be structured to support JWT initially with extensibility for OAuth2/custom providers?
-
-**Decision**: Implement strategy pattern with `BaseAuthStrategy` interface and `JWTAuthStrategy` initial implementation
+#### Decision: Standard Plugin Structure with plugin.cfg and plugin.gd
 
 **Rationale**:
-- Strategy pattern enables swapping authentication mechanisms without changing consuming code
-- Passport.js-inspired design (from Universo Platformo React) adapted to GDScript
-- JWT provides stateless authentication suitable for distributed systems
-- Extensibility allows future OAuth2Strategy, APIKeyStrategy, CustomStrategy additions
-- Clear separation of concerns: AuthManager orchestrates, strategies implement specifics
+- Godot's native addon system provides built-in package management
+- No external tools (PNPM/npm) needed
+- Clean integration with Godot Editor
+- Supports semantic versioning and dependency management
+
+**Plugin Structure**:
+```
+addons/package_name/
+├── plugin.cfg           # Metadata (name, description, author, version, script)
+├── plugin.gd           # Entry point (extends EditorPlugin)
+├── base/               # Core implementation
+│   ├── scenes/
+│   ├── scripts/
+│   └── assets/
+└── docs/
+    ├── README.md
+    └── README-RU.md
+```
+
+**plugin.cfg Format**:
+```ini
+[plugin]
+name="Package Name"
+description="Package description"
+author="Author Name"
+version="1.0.0"
+script="plugin.gd"
+
+[dependencies]
+required_plugins=["other_plugin_name"]
+```
+
+**Best Practices**:
+- Use EditorPlugin inheritance with `tool` keyword
+- Initialize in `_enter_tree()`, cleanup in `_exit_tree()`
+- Keep scene hierarchies shallow with descriptive names
+- Document APIs clearly for maintainability
+- Follow semantic versioning (MAJOR.MINOR.PATCH)
+
+**Design Patterns**:
+- **Signal Bus**: Centralize event communication without tight coupling
+- **State Machine**: For complex systems with multiple states (only when needed)
+- **Object Pooling**: For frequently created/destroyed objects (bullets, effects)
+- **Resource Pattern (.tres)**: Store reusable configuration in custom resource files
+- **Autoload (Singleton)**: Only for truly global managers
+
+**Source References**:
+- Godot Plugin Documentation: https://docs.godotengine.org/en/3.1/tutorials/plugins/editor/making_plugins.html
+- GDQuest Design Patterns: https://github.com/gdquest-demos/godot-design-patterns
+- JetBrains Godot Addon Guide: https://www.jetbrains.com/guide/gamedev/links/building-a-godot-addon/
 
 **Alternatives Considered**:
-- **Hardcoded JWT logic**: Rejected because inflexible, violates open/closed principle, difficult to extend
-- **Plugin-based authentication**: Rejected as over-engineered for initial implementation, strategy pattern simpler
-- **Session-based authentication**: Rejected because stateful, harder to scale horizontally, doesn't fit WebSocket real-time architecture
-
-**Implementation Notes**:
-- **BaseAuthStrategy** (abstract interface):
-  - `authenticate(credentials: Dictionary) -> AuthResult`
-  - `validate_token(token: String) -> User`
-  - `refresh_token(refresh_token: String) -> TokenPair`
-  - `revoke_token(token: String) -> bool`
-
-- **JWTAuthStrategy** (initial implementation):
-  - HS256 algorithm with 256-bit secret (stored in `.env` as `JWT_SECRET`)
-  - Payload: `{user_id, email, roles[], issued_at, expires_at}`
-  - Access token: 15-minute expiry
-  - Refresh token: 30-day expiry, stored in database table `refresh_tokens`
-  - Token validation: signature verification, expiry check, revocation check
-
-- **AuthManager** (orchestrator):
-  - Dependency injection: accepts strategy in constructor
-  - Methods delegate to active strategy
-  - Manages session state in memory: `Dictionary[user_id, SessionData]`
-  - Periodic cleanup of expired sessions (every 5 minutes)
+- Git submodules: More complex, doesn't integrate with Godot Editor
+- Manual file copying: Error-prone, no version management
 
 ---
 
-### 5. Material Design UI Implementation in Godot
+### 5. Material Design UI in Godot
 
-**Question**: How should Material Design principles be implemented without external UI framework?
-
-**Decision**: Use Godot's native Control nodes with custom Theme resources following Material Design guidelines
+#### Decision: Custom Theme Resources with StyleBoxFlat for Material Design Aesthetics
 
 **Rationale**:
-- Godot's Control node system is flexible and performant
-- Theme resources allow centralized styling (colors, fonts, margins, etc.)
-- Material Design guidelines provide clear specifications for component behavior and appearance
-- No external dependencies required, maintains Godot-Native Architecture principle
-- Custom components can extend base Control nodes (Button, LineEdit, etc.)
+- Godot's built-in Control nodes and Theme system are sufficient
+- No external UI library needed (reduces dependencies)
+- Theme resources (.tres) are reusable and easy to maintain
+- StyleBoxFlat provides all Material Design visual elements (rounded corners, shadows, elevation)
+
+**Implementation Approach**:
+1. Create Theme resource (File System → New Resource → Theme)
+2. Edit in Theme Editor panel (bottom of editor)
+3. Add Types (Button, Panel, Label, etc.)
+4. Customize StyleBox, Colors, Fonts, Icons for each Type
+5. Apply globally (Project Settings → GUI → Theme) or per-node
+
+**Material Design Elements**:
+- **Rounded Corners**: StyleBoxFlat corner_radius property
+- **Elevation/Shadow**: StyleBoxFlat shadow with subtle opacity
+- **Color Palette**: Primary, surface, accent colors (3 main colors + variations)
+- **Typography**: Roboto font or similar in Theme Font Items
+- **Icons**: Custom SVGs/PNGs for checkboxes, sliders, radio buttons
+
+**Programmatic Theme Override**:
+```gdscript
+$Button.add_theme_color_override("font_color", Color(0.2, 0.6, 0.8))
+$Button.add_theme_stylebox_override("normal", StyleBoxFlat.new())
+```
+
+**Source References**:
+- Godot Theme Editor: https://docs.godotengine.org/en/4.3/tutorials/ui/gui_using_theme_editor.html
+- Custom Theme Tutorial: https://gamedevfcups.com/how-to-make-a-custom-theme-in-godot/
+- Minimal Theme Example: https://github.com/passivestar/godot-minimal-theme
 
 **Alternatives Considered**:
-- **Port existing Material UI library**: Rejected because no mature Material Design library for Godot, porting React/Flutter libraries is impractical
-- **Use Godot's default theme**: Rejected because doesn't follow Material Design aesthetics, inconsistent with Universo Platformo branding
-- **Third-party UI framework (e.g., Godot UI Library addon)**: Rejected because adds external dependency, limited Material Design implementations available
-
-**Implementation Notes**:
-- **Core Material Components** (in `universo-template-godot` package):
-  - `MaterialButton`: extends Button, adds ripple effect, elevation shadows
-  - `MaterialCard`: extends Panel, adds elevation, rounded corners, shadow
-  - `MaterialDialog`: extends Popup, adds modal overlay, slide-in animation
-  - `MaterialInput`: extends LineEdit, adds floating label, helper text, validation styling
-  - `MaterialList`: extends VBoxContainer, adds item selection, dividers
-  - `DataGrid`: extends Control, adds sortable columns, pagination, filtering
-
-- **Theme Resources**:
-  - `material_light.tres`: Light mode colors (primary, secondary, surface, background, error)
-  - `material_dark.tres`: Dark mode colors (adjusted luminance for accessibility)
-  - Font: Roboto (Google Fonts, included in repo under permissive license)
-  - Spacing: 4dp, 8dp, 16dp, 24dp, 32dp grid system
-  - Elevation: 0dp, 1dp, 2dp, 4dp, 8dp, 16dp, 24dp shadow styles
-
-- **Color Palette** (Material Design 3):
-  - Primary: #6750A4 (purple), Secondary: #625B71 (gray-purple)
-  - Surface: #FFFBFE (light), #1C1B1F (dark)
-  - Background: #FFFBFE (light), #1C1B1F (dark)
-  - Error: #B3261E (red), Success: #4CAF50 (green)
+- External Material Design library: Unnecessary overhead, harder to customize
+- Pure code-based UI: Less maintainable, no visual preview
 
 ---
 
-### 6. Testing Framework - Godot Unit Testing (GUT)
+### 6. Supabase Integration with Godot
 
-**Question**: Which testing framework should be used for test-driven development?
-
-**Decision**: Use GUT (Godot Unit Test) framework for all unit, integration, and contract tests
+#### Decision: Community Supabase Addon with REST API via HTTPRequest
 
 **Rationale**:
-- GUT is the de facto standard testing framework for Godot projects
-- Mature, actively maintained, extensive documentation
-- Supports unit tests, integration tests, parameterized tests, mocking
-- Integrates with Godot Editor and CLI for CI/CD automation
-- Familiar syntax for developers experienced with xUnit-style frameworks
+- Mature community addon (supabase-community/godot-engine.supabase) provides ready-to-use integration
+- Supports authentication, database, realtime, and storage out-of-the-box
+- REST API approach is stable and well-documented
+- Drag-and-drop UI library for rapid prototyping
+
+**Implementation Pattern**:
+```gdscript
+const config := {
+    "supabaseUrl": "{your_supabase_url}",
+    "supabaseKey": "{your_supabase_anon_key}"
+}
+
+func _ready():
+    Supabase.load_config(config)
+    var task = Supabase.Auth.sign_in("email@example.com", "password")
+    var auth_result = await task.completed
+    if auth_result.success:
+        print("Logged in:", auth_result.data.user)
+    else:
+        print("Failed:", auth_result.error)
+```
+
+**Authentication Features**:
+- Email/password login
+- Anonymous login
+- OTP (One-Time Password)
+- Magic links
+- OAuth support (Google, GitHub, etc.)
+
+**Database Operations**:
+- Query, insert, update, delete via REST API
+- Real-time subscriptions
+- Row-level security (RLS) support
+
+**Source References**:
+- Supabase Godot Addon: https://github.com/supabase-community/godot-engine.supabase
+- Alternative Addon: https://github.com/Overvault-64/Supabase-Godot-API
+- OAuth Tutorial: https://www.youtube.com/watch?v=g1tgPEKCKg0
 
 **Alternatives Considered**:
-- **WAT (Godot testing framework)**: Rejected because less mature than GUT, smaller community, fewer features
-- **Custom testing framework**: Rejected as reinventing the wheel, would delay development
-- **Manual testing only**: Rejected because violates Test-First Development constitutional principle
-
-**Implementation Notes**:
-- **Installation**: GUT addon in `addons/gut/` directory, registered in project.godot
-- **Test Structure**:
-  - `tests/unit/`: Unit tests for individual classes (e.g., `test_database_manager.gd`)
-  - `tests/integration/`: Integration tests for package interactions (e.g., `test_clusters_crud.gd`)
-  - `tests/contract/`: API contract tests verifying request/response schemas (e.g., `test_api_contracts.gd`)
-
-- **Test Execution**:
-  - Editor: GUT panel in bottom panel, run selected tests or all tests
-  - CLI: `godot --path . -s addons/gut/gut_cmdln.gd -gtest=tests/` for CI/CD
-  - CI/CD: GitHub Actions workflow runs tests on push/PR
-
-- **Naming Conventions**:
-  - Test files: `test_<class_name>.gd` (e.g., `test_cluster.gd`)
-  - Test methods: `test_<scenario>_<expected_result>()` (e.g., `test_create_cluster_with_valid_data_returns_success()`)
-
-- **Test Lifecycle**:
-  - `before_all()`: Setup once before all tests in file
-  - `before_each()`: Setup before each test
-  - `after_each()`: Cleanup after each test
-  - `after_all()`: Cleanup once after all tests
+- Direct PostgreSQL connection: More complex, requires additional libraries
+- Custom REST wrapper: Reinventing the wheel, more maintenance
 
 ---
 
-### 7. Package Dependency Management with Godot Addon System
+### 7. JWT Authentication in GDScript
 
-**Question**: How should package dependencies be declared and managed without PNPM/npm?
-
-**Decision**: Use Godot's addon system with `plugin.cfg` [dependencies] section and autoload ordering
+#### Decision: godot-engine.jwt Library by fenix-hub
 
 **Rationale**:
-- Godot 4.x supports addon dependencies natively in `plugin.cfg`
-- `[dependencies]` section lists required addons by name
-- Godot Editor validates dependencies on addon enable
-- Autoload system (project.godot) controls initialization order for global services
-- No external package manager needed, maintains simplicity
+- Mature GDScript library with HS256 and RS256 support
+- JWT creation, signing, verification, and decoding
+- Available on GitHub and Godot Asset Library
+- Active maintenance and community support
+
+**Implementation Pattern**:
+```gdscript
+# Creating a JWT
+var secret = "your-secret-key"
+var jwt_algorithm = JWTAlgorithmBuilder.HS256(secret)
+var jwt_builder = JWT.create()
+    .with_expires_at(OS.get_unix_time() + 3600)
+    .with_issuer("GodotGame")
+    .with_claim("user_id", user_id)
+var token = jwt_builder.sign(jwt_algorithm)
+
+# Verifying a JWT
+var jwt_verifier = JWT.require(jwt_algorithm)
+    .with_claim("user_id", expected_user_id)
+    .build()
+if jwt_verifier.verify(token) == JWTVerifier.JWTExceptions.OK:
+    print("Token is valid!")
+```
+
+**Security Best Practices**:
+- Always set expiration (`exp`) claims (15 minutes for access tokens)
+- Use refresh tokens (30-day expiry) stored separately
+- Store JWT_SECRET in .env file (256-bit minimum)
+- Use HTTPS for all token transmission
+- Prefer RS256 for public APIs (asymmetric keys)
+- Never store sensitive data in payload (only base64-encoded, not encrypted)
+- Implement token blacklisting/revocation for logout
+
+**Token Management Strategy**:
+- Access token: Short-lived (15 min), stored in memory only
+- Refresh token: Long-lived (30 days), stored in secure table
+- Automatic refresh before expiry
+- Clear all tokens on logout
+
+**Source References**:
+- godot-engine.jwt: https://github.com/fenix-hub/godot-engine.jwt
+- Asset Library: https://godotengine.org/asset-library/asset/1104
+- JWT Security Guide: https://jsonconsole.com/blog/advanced-json-web-token-jwt-implementation-security-best-practices
 
 **Alternatives Considered**:
-- **Manual dependency documentation**: Rejected because error-prone, no enforcement, hard to track
-- **External package manager (custom tool)**: Rejected as over-engineered, adds complexity, violates Godot-Native Architecture
-- **Git submodules for packages**: Rejected because complicates repository structure, harder to manage than single monorepo
-
-**Implementation Notes**:
-- **plugin.cfg format**:
-  ```ini
-  [plugin]
-  name="clusters-frt"
-  description="Clusters feature frontend"
-  author="Universo Platformo Team"
-  version="0.1.0"
-  script="plugin.gd"
-  
-  [dependencies]
-  universo-utils="^0.1.0"
-  universo-types="^0.1.0"
-  universo-api-client="^0.1.0"
-  ```
-
-- **Semantic Versioning**:
-  - Version format: MAJOR.MINOR.PATCH
-  - `^0.1.0`: Compatible with 0.1.x (minor updates allowed)
-  - `~0.1.0`: Compatible with 0.1.0 (patch updates only)
-  - `0.1.0`: Exact version match
-
-- **Autoload Order** (project.godot):
-  ```ini
-  [autoload]
-  Config="*res://scripts/config.gd"
-  Logger="*res://scripts/logger.gd"
-  DatabaseManager="*res://scripts/database_manager.gd"
-  NetworkManager="*res://scripts/network_manager.gd"
-  AuthManager="*res://scripts/auth_manager.gd"
-  ```
-  Order matters: Config first (loads .env, config.json), then Logger, then service managers
-
-- **Dependency Resolution**:
-  - Godot Editor checks dependencies when enabling addon
-  - Missing dependencies show error in console, addon enable fails
-  - Circular dependencies detected and reported (must be avoided)
+- Custom JWT implementation: Error-prone, security risks
+- Session-based auth: Less scalable for distributed systems
 
 ---
 
-### 8. Database Migration System
+### 8. Testing Frameworks for Godot
 
-**Question**: How should database schema migrations be versioned and executed?
-
-**Decision**: Implement migration runner with versioned SQL files and tracking table
+#### Decision: GUT (Godot Unit Test) as Primary Framework
 
 **Rationale**:
-- Schema changes must be version-controlled and repeatable
-- Migration files provide clear history of database evolution
-- Tracking table (`schema_migrations`) prevents re-running migrations
-- SQL files are database-agnostic (works with PostgreSQL, future databases)
-- Simple, proven pattern from Rails, Django, Laravel migrations
+- Most mature and popular testing framework for Godot
+- Supports both Godot 3.x and 4.x
+- Works in editor and CLI (CI/CD compatible)
+- Rich assertion library with doubles (mocks/stubs)
+- Parameterized tests and inner test classes
+- JUnit XML export for CI integration
+- VSCode extension for IDE integration
+
+**Framework Comparison**:
+
+| Feature | GUT | GdUnit4 |
+|---------|-----|---------|
+| GDScript Support | ✅ | ✅ |
+| C# Support | ❌ | ✅ |
+| Scene Testing | ✅ | ✅ |
+| Mocking/Stubbing | ✅ | ✅ |
+| Parameterized Tests | ✅ | ✅ |
+| CLI Support | ✅ | ✅ |
+| Editor Integration | ✅ | ✅ (Test Inspector) |
+| Community Size | Larger | Growing |
+
+**Test Structure**:
+```gdscript
+extends GutTest
+
+func before_all():
+    # Setup once before all tests
+
+func before_each():
+    # Setup before each test
+
+func after_each():
+    # Cleanup after each test
+
+func after_all():
+    # Cleanup once after all tests
+
+func test_example():
+    assert_eq(1, 1, "Should pass")
+```
+
+**Best Practices**:
+- Place tests in `test/` or `tests/` directory
+- Name test files with `test_` prefix (e.g., `test_player.gd`)
+- Group related tests with inner classes
+- Use parameterized tests to reduce duplication
+- Write integration tests for scene interactions
+- Mock external dependencies (database, network)
+
+**Source References**:
+- GUT GitHub: https://github.com/bitwes/Gut
+- GUT Documentation: https://gut.readthedocs.io/en/latest/Quick-Start.html
+- GdUnit4: https://github.com/MikeSchulze/gdUnit4
+- Testing Tutorial: https://nightblade9.github.io/godot-gamedev/2019/getting-started-with-unit-and-integration-testing-in-godot.html
 
 **Alternatives Considered**:
-- **Manual schema updates**: Rejected because error-prone, not repeatable, no rollback capability
-- **ORM-based migrations**: Rejected because no mature GDScript ORM exists
-- **Supabase dashboard only**: Rejected because doesn't version control schema changes, hard to replicate environments
-
-**Implementation Notes**:
-- **Migration File Format**:
-  - Location: `migrations/`
-  - Naming: `###_description.sql` (e.g., `001_initial_schema.sql`, `002_add_clusters_table.sql`)
-  - Structure:
-    ```sql
-    -- Migration: 001_initial_schema
-    -- Description: Create initial database schema
-    
-    -- Up Migration
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      version INTEGER PRIMARY KEY,
-      applied_at TIMESTAMP DEFAULT NOW()
-    );
-    
-    -- Down Migration (optional, for rollback)
-    -- DROP TABLE IF EXISTS schema_migrations;
-    ```
-
-- **MigrationRunner class** (scripts/migration_runner.gd):
-  - `run_migrations()`: Executes pending migrations in order
-  - `get_applied_migrations()`: Queries `schema_migrations` table
-  - `get_pending_migrations()`: Finds unapplied migration files
-  - `execute_migration(file_path: String)`: Runs single migration, records in tracking table
-
-- **Execution Flow**:
-  1. On application startup (after DatabaseManager init)
-  2. MigrationRunner checks `schema_migrations` table (creates if missing)
-  3. Lists migration files in `migrations/` directory
-  4. Compares applied vs available migrations
-  5. Executes pending migrations in numerical order
-  6. Records each successful migration in tracking table
-  7. Logs results (migrations applied, skipped, errors)
-
-- **Error Handling**:
-  - Migration failure logs error, stops execution, prevents application start
-  - Manual intervention required to fix migration or database state
-  - No automatic rollback (must be done manually to prevent data loss)
+- GdUnit4: Good alternative, especially for C# projects
+- Custom test framework: Not recommended, reinvents the wheel
 
 ---
 
-### 9. Rate Limiting Strategy
+### 9. Monorepo Architecture for Godot
 
-**Question**: How should API rate limiting be implemented to prevent abuse?
-
-**Decision**: Token bucket algorithm with in-memory tracking per IP and authenticated user
+#### Decision: Filesystem-Based Package Organization with Addons System
 
 **Rationale**:
-- Token bucket allows burst traffic while enforcing long-term limits
-- In-memory tracking is fast (no database lookups per request)
-- Separate limits for IP (unauthenticated) and user (authenticated) provide flexibility
-- Simple to implement in GDScript with Dictionary tracking
+- Godot has no native monorepo tools like PNPM/npm
+- Filesystem discipline + version control provides sufficient organization
+- Addons directory serves as package registry
+- Clear folder structure scales well with team size
+
+**Recommended Structure**:
+```
+/project.godot
+/addons/                    # Reusable packages/plugins
+│   ├── auth/
+│   ├── database/
+│   └── networking/
+/packages/                  # Feature modules
+│   ├── clusters-frt/       # Frontend package
+│   │   └── base/
+│   │       ├── scenes/
+│   │       ├── scripts/
+│   │       ├── plugin.cfg
+│   │       └── plugin.gd
+│   ├── clusters-srv/       # Backend package
+│   │   └── base/
+│   │       ├── scripts/
+│   │       ├── api/
+│   │       ├── plugin.cfg
+│   │       └── plugin.gd
+│   └── metaverses-frt/
+/scenes/                    # Main application scenes
+/scripts/                   # Shared utility scripts
+/assets/                    # Shared assets
+/themes/                    # UI themes
+/translations/              # i18n files
+/tests/                     # Test suites
+/.github/                   # GitHub workflows
+/.specify/                  # Specification tools
+```
+
+**Best Practices**:
+- Group assets near scenes for maintainability
+- Use snake_case for directories, PascalCase for scripts
+- Use `.gdignore` to exclude folders from import/cache
+- Each package should be independently testable
+- Shared code goes in `/addons` or `/scripts`
+- Document package dependencies in plugin.cfg
+
+**Package Naming Convention**:
+- Frontend packages: `{feature}-frt`
+- Backend packages: `{feature}-srv`
+- Shared packages: `{feature}-shared` (if needed)
+- Each package contains `base/` for primary implementation
+
+**CI/CD Strategy**:
+- Matrix builds for each package
+- Selective test execution based on changed files
+- Automated build/export per package
+- Version tagging per package release
+
+**Source References**:
+- Godot Project Organization: https://docs.godotengine.org/en/stable/tutorials/best_practices/project_organization.html
+- Monorepo Best Practices: https://www.aviator.co/blog/monorepo-a-hands-on-guide-for-managing-repositories-and-microservices/
+- GitHub Monorepo Guide: https://wellarchitected.github.com/library/scenarios/monorepos/
 
 **Alternatives Considered**:
-- **Leaky bucket algorithm**: Rejected because less flexible for burst traffic, token bucket more common
-- **Database-backed tracking**: Rejected because adds latency to every request, database becomes bottleneck
-- **Third-party rate limiting service**: Rejected because adds external dependency, increases deployment complexity
-- **No rate limiting**: Rejected because violates Security-First Design principle, exposes to abuse
-
-**Implementation Notes**:
-- **Token Bucket Algorithm**:
-  - Each client has bucket with capacity (e.g., 100 tokens)
-  - Tokens refill at fixed rate (e.g., 1 token per 0.6 seconds = 100/minute)
-  - Each request consumes 1 token
-  - Request allowed if tokens available, rejected if bucket empty
-
-- **Rate Limits**:
-  - Unauthenticated (by IP): 100 requests/minute, burst 20
-  - Authenticated (by user_id): 1000 requests/minute, burst 100
-  - WebSocket connections: 10 connections per IP, unlimited per authenticated user
-
-- **Implementation** (in NetworkManager):
-  ```gdscript
-  var rate_limiters = {}  # Dictionary[String, RateLimiter]
-  
-  class RateLimiter:
-      var capacity: int
-      var tokens: float
-      var refill_rate: float  # tokens per second
-      var last_refill: float  # timestamp
-  
-  func check_rate_limit(client_id: String, limit_config: Dictionary) -> bool:
-      if not rate_limiters.has(client_id):
-          rate_limiters[client_id] = create_limiter(limit_config)
-      
-      var limiter = rate_limiters[client_id]
-      refill_tokens(limiter)
-      
-      if limiter.tokens >= 1.0:
-          limiter.tokens -= 1.0
-          return true
-      else:
-          return false  # Rate limit exceeded
-  ```
-
-- **HTTP Response** (when rate limited):
-  - Status: 429 Too Many Requests
-  - Headers: `Retry-After: 60` (seconds until tokens available)
-  - Body: `{"error": "ERROR_RATE_LIMIT_EXCEEDED", "retry_after": 60}`
+- Git submodules: Complex merge conflicts, harder to maintain
+- Multiple repositories: Loses atomic commits, harder to refactor across packages
+- External monorepo tools (Bazel, Nx): Overkill for Godot projects
 
 ---
 
-### 10. Conflict Resolution for Real-Time Sync
+## Technical Clarifications Resolution
 
-**Question**: How should conflicts be resolved when multiple clients update the same entity simultaneously?
+All "NEEDS CLARIFICATION" items from the Technical Context have been resolved:
 
-**Decision**: Last Write Wins (LWW) with timestamp comparison; manual resolution UI for unresolvable conflicts
+✅ **Language/Version**: Godot Engine 4.3+ (minimum), GDScript  
+✅ **Primary Dependencies**: REST API Server addon, Supabase addon, JWT library, GUT testing  
+✅ **Storage**: Supabase (PostgreSQL) via REST API  
+✅ **Testing**: GUT (Godot Unit Test) with CLI and editor support  
+✅ **Target Platform**: Desktop (Windows/Linux/Mac) + Server (headless)  
+✅ **Project Type**: Full-stack application (frontend + backend in single project)  
+✅ **Performance Goals**: 100-500 concurrent users per server instance  
+✅ **Constraints**: <200ms p95 latency for API calls, <100MB memory for headless server  
+✅ **Scale/Scope**: Initial implementation with 3-5 packages, extensible to 20+ packages
 
-**Rationale**:
-- LWW is simple, deterministic, and understood by developers
-- Timestamp comparison provides clear conflict resolution rule
-- Manual resolution UI handles edge cases where automatic resolution unacceptable
-- Suitable for typical use cases where conflicts are rare
+## Implementation Priorities
 
-**Alternatives Considered**:
-- **Operational Transformation (OT)**: Rejected because complex to implement, overkill for entity-level updates (more suitable for collaborative text editing)
-- **Conflict-free Replicated Data Types (CRDTs)**: Rejected because complex, limited GDScript libraries, not needed for this use case
-- **First Write Wins**: Rejected because less intuitive than LWW, users expect latest changes to persist
-- **Manual resolution only**: Rejected because creates bad UX for common cases with clear resolution
+Based on research findings, the recommended implementation order:
 
-**Implementation Notes**:
-- **Optimistic UI Updates**:
-  1. User edits entity in UI
-  2. UI immediately reflects change (optimistic)
-  3. Entity marked as "pending" (gray indicator)
-  4. WebSocket sends update to server
-  5. Server processes update, broadcasts to clients
-  6. UI receives confirmation, marks entity as "confirmed" (indicator removed)
+1. **Project Setup** (P0 - Foundation)
+   - Initialize Godot 4.3+ project
+   - Setup addon system and package structure
+   - Configure .env and config.json
+   - Create base documentation (README, CONTRIBUTING, ARCHITECTURE)
 
-- **Conflict Detection**:
-  - Each entity has `updated_at` timestamp
-  - Client sends update with client timestamp
-  - Server compares client timestamp vs server's latest timestamp
-  - If server timestamp newer: conflict detected
+2. **Core Infrastructure** (P1 - Critical)
+   - Implement autoload managers (Config, Logger, DatabaseManager, NetworkManager)
+   - Integrate Supabase addon
+   - Setup JWT authentication
+   - Configure Material Design theme
 
-- **Conflict Resolution - LWW**:
-  - Server: `if client_timestamp > server_timestamp: apply_update() else: reject_update()`
-  - Rejected update sends conflict message to client: `{"type": "conflict", "entity": "cluster", "id": "uuid", "server_data": {...}, "client_data": {...}}`
-  - Client UI: Show conflict dialog with server vs client data, user chooses which to keep or manually merges
+3. **Server Implementation** (P1 - Critical)
+   - Install REST API Server plugin
+   - Implement WebSocket server
+   - Create API routing system
+   - Setup authentication middleware
 
-- **Conflict Resolution UI**:
-  - Dialog with side-by-side comparison (server version | client version)
-  - Highlighting of differing fields
-  - Options: "Keep Server Version", "Keep My Version", "Merge Manually"
-  - Merge Manually: Editable fields pre-filled with client data, can copy from server data
-  - After resolution, send new update with current timestamp
+4. **Testing Foundation** (P1 - Critical)
+   - Install GUT framework
+   - Create test directory structure
+   - Write initial unit tests for core managers
+   - Setup CI/CD with automated testing
 
----
+5. **First Feature: Clusters** (P2 - Template)
+   - Implement packages/clusters-frt/base/
+   - Implement packages/clusters-srv/base/
+   - Create full CRUD operations
+   - Serve as template for future features
 
-## Technology Stack Summary
+6. **Documentation & Guidelines** (P2 - Essential)
+   - Complete bilingual README files
+   - Create package development guide
+   - Document API contracts
+   - Setup GitHub issue/PR templates
 
-### Core Technologies (Finalized)
-- **Godot Engine**: 4.3+ minimum, latest stable 4.x recommended
-- **Language**: GDScript (100% of codebase)
-- **Database**: Supabase (PostgreSQL-based) via REST API
-- **Testing**: GUT (Godot Unit Test) framework
-- **Package Management**: Godot native addon system (plugin.cfg)
+## Recommendations
 
-### Backend Infrastructure
-- **HTTP Server**: Godot native `HTTPServer` class
-- **WebSocket**: Godot native `WebSocketServer` and `WebSocketPeer`
-- **Authentication**: JWT tokens with strategy pattern (HS256 algorithm)
-- **Authorization**: Role-Based Access Control (RBAC)
-- **Rate Limiting**: Token bucket algorithm, in-memory tracking
+### Do's
+- ✅ Use Godot's native capabilities wherever possible
+- ✅ Follow scene-based architecture with autoload for global services
+- ✅ Implement server-authoritative multiplayer patterns
+- ✅ Write tests before implementation (TDD)
+- ✅ Maintain bilingual documentation with exact parity
+- ✅ Use semantic versioning for all packages
+- ✅ Keep packages independently testable
+- ✅ Document all public APIs clearly
 
-### Frontend Infrastructure
-- **UI Framework**: Godot Control nodes with custom themes
-- **Design System**: Material Design 3 principles
-- **UI Components**: Custom Material components in `universo-template-godot` package
-- **Themes**: Light/Dark mode with Material color palette
-- **Internationalization**: Godot translation system (.en.translation, .ru.translation)
-
-### Development Tools
-- **Version Control**: Git monorepo
-- **Documentation**: Markdown (English + Russian)
-- **CI/CD**: GitHub Actions (planned)
-- **Validation**: Custom `validate.sh` script for documentation/structure checks
-
-## Implementation Priority
-
-### Phase 1: Foundation (Weeks 1-2)
-1. Repository structure setup (packages/, scripts/, scenes/, themes/, translations/, migrations/)
-2. Core documentation (README, CONTRIBUTING, ARCHITECTURE - bilingual)
-3. Autoload scripts (Config, Logger, DatabaseManager, NetworkManager, AuthManager)
-4. Shared utility packages (universo-utils, universo-types, universo-i18n, universo-api-client)
-5. Database migration system implementation
-6. .env.example and config.json templates
-
-### Phase 2: Infrastructure (Weeks 3-4)
-7. HTTP server implementation with routing
-8. WebSocket server implementation with message protocol
-9. JWT authentication strategy implementation
-10. RBAC authorization system
-11. Rate limiting implementation
-12. Material Design theme resources (light/dark)
-13. UI component library (universo-template-godot)
-
-### Phase 3: First Feature - Clusters (Weeks 5-6)
-14. Database schema for Clusters/Domains/Resources
-15. clusters-srv package (API, services, models, repositories)
-16. clusters-frt package (UI scenes, controllers, state management)
-17. Real-time sync implementation for Clusters
-18. Comprehensive test suite (unit, integration, contract)
-19. Bilingual package documentation
-
-### Phase 4: Validation & Documentation (Week 7)
-20. Validation script enhancements
-21. Quickstart guide (English + Russian)
-22. API documentation generation
-23. Security audit and threat model documentation
-24. Performance testing and optimization
-25. Final documentation review and synchronization check
+### Don'ts
+- ❌ Don't create custom package managers (use Godot's addon system)
+- ❌ Don't skip testing for "simple" features
+- ❌ Don't expose sensitive data in JWT payloads
+- ❌ Don't use client-authoritative patterns (security risk)
+- ❌ Don't create deep inheritance hierarchies (prefer composition)
+- ❌ Don't hard-code configuration (use .env and config.json)
+- ❌ Don't optimize prematurely (profile first)
 
 ## Next Steps
 
-1. ✅ Research completed - all technical unknowns resolved
-2. → **Proceed to Phase 1: Design & Contracts** - Create `data-model.md`, `contracts/`, and `quickstart.md`
-3. → **Run agent context update** - Execute `.specify/scripts/bash/update-agent-context.sh copilot` to add technology decisions to agent context
-4. → **Re-evaluate Constitution Check** - Verify all principles still satisfied with detailed design
-5. → **Phase 2: Task Breakdown** - Create `tasks.md` with detailed implementation checklist (NOT part of `/speckit.plan` command)
+1. Update Technical Context in plan.md with resolved clarifications
+2. Proceed to Phase 1: Design & Contracts
+3. Create data-model.md for entity definitions
+4. Generate API contracts in contracts/ directory
+5. Create quickstart.md for onboarding
+6. Update agent context files
+
+## References Summary
+
+### Official Documentation
+- Godot 4.3+ Documentation: https://docs.godotengine.org/en/stable/
+- GDScript Reference: https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/
+- WebSocket Tutorial: https://docs.godotengine.org/en/stable/tutorials/networking/websocket.html
+
+### Community Resources
+- GDQuest (Design Patterns): https://www.gdquest.com/
+- Godot Asset Library: https://godotengine.org/asset-library/
+- Godot Forum: https://forum.godotengine.org/
+
+### Essential Addons
+- REST API Server: https://github.com/fbcosentino/godot-rest-api-server
+- Supabase Integration: https://github.com/supabase-community/godot-engine.supabase
+- JWT Library: https://github.com/fenix-hub/godot-engine.jwt
+- GUT Testing: https://github.com/bitwes/Gut
+
+### Learning Resources
+- Godot Tutorials: https://gdscript.com/tutorials/
+- Game Dev Patterns: https://www.manuelsanchezdev.com/blog/game-development-patterns
+- Godot Cookbook: https://github.com/PacktPublishing/Godot-4-Game-Development-Cookbook
 
 ---
 
-**Research Status**: ✅ COMPLETE  
-**Gate Status**: ✅ PASS - Ready to proceed to Phase 1  
-**Date Completed**: 2025-11-17
+**Research Completed**: 2025-11-17  
+**Total Sources Reviewed**: 30+  
+**Status**: Ready for Phase 1 (Design & Contracts)
