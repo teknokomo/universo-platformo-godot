@@ -1,15 +1,14 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.0.0 → 1.1.0
-Reason: Added Security-First Design principle (VIII), clarified Package-Based Modularity with Godot-native details, enhanced Technology Stack Requirements
+Version Change: 1.1.0 → 1.2.0
+Reason: Strengthened Package-Based Modularity principle to explicitly prohibit non-modular implementation, added migration path clarification
 
 Modified Principles:
-- UPDATED: II. Package-Based Modularity (Godot-Native Approach) - Added clarification that Godot's addon system replaces PNPM, no external package manager needed
-- NEW: VIII. Security-First Design - Added comprehensive security principle
+- UPDATED: II. Package-Based Modularity (Godot-Native Approach) - Made NON-NEGOTIABLE, added explicit prohibition of functionality outside packages/, clarified future repository extraction strategy, added requirement for shared packages
 
 Updated Sections:
-- Technology Stack Requirements - Specified minimum Godot 4.3+, clarified HTTP/WebSocket implementation, detailed authentication strategy pattern, explicit package management via addon system
+- None - focused update to principle II
 
 Templates Status:
 - ✅ plan-template.md - Reviewed, no updates needed (generic constitution check)
@@ -17,12 +16,15 @@ Templates Status:
 - ✅ tasks-template.md - Reviewed, no updates needed (user story based)
 
 Follow-up TODOs:
-- None - All enhancements complete
+- Update ARCHITECTURE.md to reflect strengthened modularity requirements
+- Update README.md to clarify package-based structure
+- Review specs/001-project-setup/plan.md for compliance
 
 Ratification Details:
 - Original ratification date: 2025-11-16 (initial adoption)
-- Amendment date: 2025-11-16 (same day - comprehensive enhancement)
-- Reason for amendment: Specification enhancement phase identified gaps in security principles and package management clarity
+- Previous amendment: 2025-11-16 (v1.1.0 - security and package management)
+- Current amendment: 2025-11-17 (v1.2.0 - strengthened modularity enforcement)
+- Reason for amendment: User requirement to ensure ABSOLUTE and UNAMBIGUOUS documentation of modular package-based architecture, preventing non-modular implementation approaches
 -->
 
 # Universo Platformo Godot Constitution
@@ -39,17 +41,22 @@ Every feature MUST be implemented using Godot Engine's native capabilities and G
 
 **Rationale**: Godot Engine provides a complete ecosystem for full-stack development. Leveraging native capabilities ensures optimal performance, maintainability, and seamless integration with the engine's features.
 
-### II. Package-Based Modularity (Godot-Native Approach)
+### II. Package-Based Modularity (Godot-Native Approach) - NON-NEGOTIABLE
 
-All functionality MUST be organized as self-contained packages within `packages/` directory using Godot's native addon system:
+**CRITICAL REQUIREMENT**: ALL functionality (except general launch/build files) MUST be organized as self-contained packages within `packages/` directory using Godot's native addon system. Implementation of functionality outside `packages/` is STRICTLY PROHIBITED.
+
+**Package Structure Requirements**:
 - Each package follows the naming convention: `packages/{feature}-frt` (frontend) and `packages/{feature}-srv` (backend/server)
-- Every package contains a `base/` root folder for core implementation
+- Every package MUST contain a `base/` root folder for core implementation
 - Packages are Godot plugins registered in `project.godot` (no PNPM or npm equivalent needed)
 - Package dependencies declared in `plugin.cfg` [dependencies] section
-- Packages are independently testable and documented
+- Packages MUST be independently testable and documented
 - Future alternative implementations can coexist (e.g., `packages/clusters-frt/base/`, `packages/clusters-frt/alternative/`)
+- Shared types and utilities MUST be in dedicated packages (e.g., `packages/universo-types`, `packages/universo-utils`)
 
-**Rationale**: Package-based structure enables incremental development, parallel feature work, and future extensibility. Unlike Universo Platformo React which uses PNPM workspaces, Godot's native addon system provides built-in package management without external tools. The monorepo approach with clear separation supports team scalability.
+**Future Migration Path**: Individual packages will be gradually extracted into separate repositories as the project matures. The monorepo structure is temporary to facilitate initial development while maintaining atomic commits and cross-package refactoring capabilities.
+
+**Rationale**: Package-based structure enables incremental development, parallel feature work, and future extensibility. Unlike Universo Platformo React which uses PNPM workspaces, Godot's native addon system provides built-in package management without external tools. The monorepo approach with clear separation supports team scalability and prepares for future repository extraction.
 
 ### III. Bilingual Documentation (NON-NEGOTIABLE)
 
@@ -202,4 +209,4 @@ This constitution supersedes all other development practices and guidelines. In 
 **Living Document**:
 This constitution evolves with the project. Feedback and improvement suggestions are welcome through the standard issue/PR process.
 
-**Version**: 1.1.0 | **Ratified**: 2025-11-16 | **Last Amended**: 2025-11-16
+**Version**: 1.2.0 | **Ratified**: 2025-11-16 | **Last Amended**: 2025-11-17
