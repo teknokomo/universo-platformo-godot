@@ -401,6 +401,384 @@ The DatabaseManager is designed to support multiple backends:
 - Memory management
 - CPU utilization
 
+## Shared Utility Packages Pattern
+
+### universo-utils Package
+
+**Purpose**: Centralized utility functions to avoid code duplication across feature packages.
+
+**Location**: `scripts/utils/` (or `packages/universo-utils/base/` for package structure)
+
+**Modules**:
+
+1. **Validation** (`validation.gd`):
+   ```gdscript
+   class_name ValidationUtils
+   static func is_valid_email(email: String) -> bool
+   static func is_valid_uuid(uuid: String) -> bool
+   static func is_valid_url(url: String) -> bool
+   ```
+
+2. **Serialization** (`serialization.gd`):
+   ```gdscript
+   class_name SerializationUtils
+   static func to_json_safe(data: Variant) -> String
+   static func from_json_safe(json_string: String) -> Variant
+   static func to_base64(data: PackedByteArray) -> String
+   static func from_base64(base64_string: String) -> PackedByteArray
+   ```
+
+3. **Math Utilities** (`math_utils.gd`):
+   ```gdscript
+   class_name MathUtils
+   static func lerp_smooth(from: float, to: float, weight: float, delta: float) -> float
+   static func map_range(value: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float
+   ```
+
+4. **Environment Utilities** (`env.gd`):
+   ```gdscript
+   class_name EnvUtils
+   static func get_api_base_url() -> String
+   static func is_development() -> bool
+   static func is_production() -> bool
+   ```
+
+### universo-types Package
+
+**Purpose**: Shared type definitions and data schemas for consistency across packages.
+
+**Location**: `scripts/types/` (or `packages/universo-types/base/`)
+
+**Pattern**: Each entity type has its own class with validation methods.
+
+```gdscript
+class_name ClusterTypes
+extends RefCounted
+
+class Cluster:
+    var id: String
+    var name: String
+    var description: String
+    var owner_id: String
+    var created_at: int
+    var updated_at: int
+    
+    func to_dict() -> Dictionary: pass
+    func validate() -> Dictionary: pass
+    func from_dict(data: Dictionary) -> void: pass
+```
+
+**Benefits**:
+- Type safety with GDScript type hints
+- Consistent validation across packages
+- Easy serialization/deserialization
+- Central location for schema changes
+
+### universo-api-client Package
+
+**Purpose**: Centralized HTTP client with automatic error handling, authentication, and retry logic.
+
+**Location**: `scripts/autoload/api_client.gd`
+
+**Features**:
+- Automatic JWT token injection
+- Request/response interceptors
+- Exponential backoff retry (max 3 retries)
+- Standardized error handling
+- Typed responses using universo-types
+
+**Architecture**:
+```gdscript
+extends Node
+
+var base_url: String
+var auth_token: String
+var request_interceptors: Array[Callable]
+var response_interceptors: Array[Callable]
+
+func get_request(endpoint: String, params: Dictionary) -> Dictionary
+func post_request(endpoint: String, body: Dictionary) -> Dictionary
+func put_request(endpoint: String, body: Dictionary) -> Dictionary
+func delete_request(endpoint: String) -> Dictionary
+```
+
+### universo-i18n Package
+
+**Purpose**: Centralized internationalization with language switching and translation management.
+
+**Location**: `scripts/autoload/i18n_manager.gd`
+
+**Features**:
+- Language switching (English/Russian initially)
+- Translation file loading (.translation format)
+- Pluralization support
+- Context-aware translations
+- Fallback language (English)
+
+**Integration with Godot**:
+Uses Godot's native `TranslationServer` for efficiency:
+```gdscript
+extends Node
+
+const SUPPORTED_LOCALES = ["en", "ru"]
+var current_locale: String = "en"
+
+func set_locale(locale: String) -> void:
+    TranslationServer.set_locale(locale)
+    locale_changed.emit(locale)
+
+signal locale_changed(locale: String)
+```
+
+## Advanced Package Patterns
+
+### Publishing System Architecture
+
+**Purpose**: Export Godot projects to multiple platforms with technology-specific exporters.
+
+**Structure**:
+```
+packages/publish-frt/base/
+├── exporters/                  # Minipackages (technology-specific)
+│   ├── web_html5/
+│   │   ├── exporter.gd        # HTML5 export logic
+│   │   ├── template.html
+│   │   └── config.json
+│   ├── desktop_native/
+│   │   ├── exporter.gd
+│   │   └── config.json
+│   └── mobile_android/
+│       ├── exporter.gd
+│       └── config.json
+├── ui/
+│   ├── export_dialog.tscn     # Main export UI
+│   └── progress_view.tscn     # Export progress
+└── api/
+    └── publication_api.gd      # API client for publish server
+```
+
+**Exporter Interface**:
+All exporters implement the `BaseExporter` interface:
+```gdscript
+class_name BaseExporter
+extends RefCounted
+
+func validate() -> Dictionary          # Check export prerequisites
+func generate() -> Dictionary          # Generate export files
+func package() -> Dictionary           # Package into distributable
+func deploy() -> Dictionary            # Deploy to platform (optional)
+```
+
+**Streaming Publication**:
+- Real-time export progress via WebSocket
+- Allows UI to show live status updates
+- Supports cancellation of long-running exports
+
+### UPDL (Universal Platform Description Language)
+
+**Purpose**: Describe scenes in technology-agnostic JSON format for cross-platform export.
+
+**Architecture**:
+```
+packages/updl/base/
+├── parser/
+│   └── updl_parser.gd         # Parse UPDL JSON
+├── validator/
+│   └── schema_validator.gd    # Validate against schema
+├── transformer/
+│   ├── to_godot.gd           # UPDL → Godot scene
+│   └── from_godot.gd         # Godot scene → UPDL
+└── serializer/
+    └── updl_serializer.gd     # Serialize to JSON
+```
+
+**UPDL Schema** (JSON):
+```json
+{
+  "version": "1.0",
+  "scene": {
+    "name": "MainScene",
+    "entities": [
+      {
+        "id": "entity_001",
+        "name": "Player",
+        "transform": {"position": [0,0,0], "rotation": [0,0,0], "scale": [1,1,1]},
+        "components": [
+          {"type": "Mesh", "properties": {"mesh": "res://models/player.glb"}},
+          {"type": "Script", "properties": {"script": "res://scripts/player.gd"}}
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Use Cases**:
+- Save scenes in version control friendly format (JSON vs binary .tscn)
+- Export to other platforms (Unity, Unreal, web engines)
+- Generate scenes programmatically
+- AI-assisted scene generation (Space Builder)
+
+### Space Builder (AI-Assisted Creation)
+
+**Purpose**: Generate node graphs/flows from natural language prompts using LLMs.
+
+**Packages**:
+- `space-builder-frt/`: UI for prompt input, model selection, preview
+- `space-builder-srv/`: LLM integration, graph validation
+
+**Workflow**:
+1. User enters natural language prompt (e.g., "Create a 3D platformer player controller")
+2. Space Builder sends prompt to LLM (OpenAI, Anthropic, or local model)
+3. LLM generates UPDL or node graph JSON
+4. System validates generated structure
+5. User previews and can edit before accepting
+6. Generated structure is saved as scene/flow
+
+**Integration Points**:
+- Uses UPDL for scene generation
+- Integrates with publishing system for immediate export
+- Supports template-based generation (learn from existing patterns)
+
+### Multiplayer Server Architecture
+
+**Purpose**: Dedicated multiplayer functionality using Godot's native networking.
+
+**Package**: `packages/multiplayer-server-srv/base/`
+
+**Architecture**:
+```
+Room-Based System:
+- Players create or join rooms
+- Each room has isolated state
+- Server is authoritative for all game logic
+```
+
+**Key Components**:
+1. **Room Manager**: Create, list, join, leave rooms
+2. **State Synchronization**: Sync entity positions, rotations, properties
+3. **Authentication**: Verify JWT tokens before room entry
+4. **Anti-Cheat**: Server-side validation of all player inputs
+
+**Communication**:
+- ENet for reliable, ordered messages (game state)
+- WebSocket for real-time updates (chat, events)
+- HTTP REST API for room management (create, list)
+
+## Package Templates and Tools
+
+### Package Template System
+
+**Purpose**: Standardize package creation with consistent structure.
+
+**Location**: `packages/package-template/base/`
+
+**Template Structure**:
+```
+package-template/base/
+├── plugin.cfg                 # With placeholders: {PACKAGE_NAME}, {PACKAGE_TYPE}
+├── plugin.gd                  # Entry point template
+├── scripts/
+│   └── example_script.gd
+├── scenes/
+│   └── example_scene.tscn
+├── README.md                  # Template with sections
+└── README-RU.md              # Russian template
+```
+
+**Creation Tool**:
+Script `tools/create_package.gd` that:
+1. Copies template directory
+2. Replaces placeholders with actual package name
+3. Updates plugin.cfg metadata
+4. Creates both README files
+
+**Usage**:
+```bash
+godot --script tools/create_package.gd --package-name metaverses --package-type frt
+```
+
+### Dependency Catalog
+
+**Purpose**: Track third-party addon versions (similar to PNPM catalog).
+
+**Location**: `scripts/dependency_catalog.gd`
+
+**Pattern**:
+```gdscript
+class_name DependencyCatalog
+
+const CATALOG = {
+    "gut": {
+        "version": "9.3.0",
+        "url": "https://github.com/bitwes/Gut",
+        "description": "Unit testing framework"
+    },
+    # ... more addons
+}
+
+static func get_addon_version(addon_name: String) -> String
+static func validate_addon_version(addon_name: String, installed: String) -> bool
+```
+
+**Benefits**:
+- Single source of truth for addon versions
+- Easy to update dependencies across project
+- Documentation of where addons come from
+- Version validation on project load
+
+## Testing and Quality Assurance
+
+### Load Testing
+
+**Purpose**: Simulate concurrent users to test performance and scalability.
+
+**Configuration**: `artillery-load-test.gd` or similar
+
+**Scenarios**:
+- 10 concurrent users (baseline)
+- 50 concurrent users (moderate load)
+- 100 concurrent users (target capacity)
+- 500 concurrent users (stress test)
+
+**Metrics Collected**:
+- Response times (p50, p95, p99)
+- Throughput (requests/second)
+- Error rates
+- Resource usage (CPU, memory, network)
+
+### Pre-Commit Validation
+
+**Purpose**: Ensure code quality before committing.
+
+**Git Hooks**: `.git/hooks/pre-commit`
+
+**Checks**:
+1. Code style (gdlint or similar)
+2. Documentation sync (README.md and README-RU.md line counts match)
+3. Unit tests pass (GUT framework)
+4. No debug print statements
+5. plugin.cfg files are valid
+
+### Metrics Collection
+
+**Purpose**: Monitor system performance in production.
+
+**Location**: `metrics/` directory
+
+**Architecture**:
+- Prometheus-compatible metrics export
+- Custom Godot metrics exporter
+- Tracks: CPU, memory, network, database query times
+- Dashboard integration (Grafana or similar)
+
+**Key Metrics**:
+- Request latency
+- Database query times
+- Active connections
+- Error rates
+- Memory usage per package
+
 ## Development Workflow
 
 ### Adding a New Feature
@@ -424,27 +802,182 @@ The DatabaseManager is designed to support multiple backends:
 
 ## Migration from React Version
 
-### What We Adopt
-- ✅ Monorepo structure
-- ✅ Package organization
-- ✅ Base implementation pattern
-- ✅ Supabase integration
-- ✅ Bilingual documentation
-- ✅ Feature separation (frontend/backend)
+### What We Adopt from React Implementation
 
-### What We Adapt
-- 🔄 PNPM → Godot addons system
+**Core Architecture Patterns**:
+- ✅ Monorepo structure with packages/ directory
+- ✅ Package organization (-frt/-srv split)
+- ✅ Base implementation pattern (base/ subdirectory)
+- ✅ Supabase integration for database
+- ✅ Bilingual documentation (English/Russian)
+- ✅ Feature separation (frontend/backend packages)
+
+**Shared Utility Pattern**:
+- ✅ universo-utils for common functions
+- ✅ universo-types for data schemas
+- ✅ universo-i18n for internationalization
+- ✅ universo-api-client for HTTP communication
+
+**Advanced Features**:
+- ✅ Publishing system with exporters
+- ✅ UPDL (Universal Platform Description Language)
+- ✅ Space Builder (AI-assisted creation)
+- ✅ Multiplayer server architecture
+- ✅ Analytics package for metrics
+- ✅ Template packages for reusable patterns
+
+**Development Tools**:
+- ✅ Package template system
+- ✅ Dependency catalog
+- ✅ Load testing configuration
+- ✅ Pre-commit validation hooks
+- ✅ Metrics collection system
+
+### What We Adapt (Godot-Specific Implementations)
+
+**Package Management**:
+- 🔄 PNPM workspaces → Godot addon system
 - 🔄 npm packages → GDScript plugins
-- 🔄 React components → Godot scenes
-- 🔄 Express server → GDScript HTTP server
-- 🔄 Passport.js → Custom auth
-- 🔄 Material UI → Godot UI themes
+- 🔄 package.json → plugin.cfg
+- 🔄 PNPM catalog → DependencyCatalog.gd
 
-### What We Don't Include
-- ❌ Documentation folder (`docs/`)
-- ❌ AI agent rules folders
-- ❌ Legacy Flowise code
-- ❌ Non-Godot tooling
+**Frontend Framework**:
+- 🔄 React components → Godot scenes (.tscn)
+- 🔄 JSX → Scene tree in Godot Editor
+- 🔄 React hooks → Godot signals
+- 🔄 Redux → Autoload singletons + signals
+- 🔄 Material UI → Custom theme resources + Control nodes
+
+**Backend Framework**:
+- 🔄 Express.js → Godot HTTPServer (native 4.3+)
+- 🔄 Express routes → HTTP request handlers
+- 🔄 Express middleware → Interceptor pattern
+- 🔄 Socket.io → WebSocketServer (native Godot)
+- 🔄 Passport.js strategies → BaseAuthStrategy pattern
+
+**Build & Development Tools**:
+- 🔄 TypeScript → GDScript with type hints
+- 🔄 Turbo → Godot auto-load system (no build needed)
+- 🔄 ESLint → gdlint
+- 🔄 Husky → Git hooks (directly)
+- 🔄 Jest/Vitest → GUT (Godot Unit Test)
+
+**Data & Networking**:
+- 🔄 TypeORM → GDScript classes with typed dictionaries
+- 🔄 Axios → HTTPRequest node
+- 🔄 Zod validation → Custom validation functions
+- 🔄 JSON → JSON + .tres resources
+
+**UI Components**:
+- 🔄 MUI Data Grid → Custom ItemList/Tree
+- 🔄 MUI Charts → Custom Control nodes with drawing
+- 🔄 CodeMirror → CodeEdit (native Godot)
+- 🔄 ReactFlow → GraphEdit (native Godot)
+- 🔄 react-markdown → RichTextLabel with BBCode
+
+### What We Don't Include (Not Applicable)
+
+**React/Node.js Specific**:
+- ❌ Documentation folder `docs/` (will be separate repo)
+- ❌ AI agent rules folders (user creates as needed)
+- ❌ Legacy Flowise code (clean implementation)
+- ❌ Non-Godot tooling (Webpack, Vite, etc.)
+- ❌ React-specific optimizations (memo, useMemo)
+- ❌ Express middleware ecosystem
+- ❌ npm/PNPM configuration files
+
+**Development Tools**:
+- ❌ Husky (using direct Git hooks)
+- ❌ TypeScript compiler
+- ❌ Babel transpiler
+- ❌ webpack/Vite bundler
+
+### Key Architectural Decisions
+
+**Why Godot Native APIs Over Third-Party**:
+1. **HTTPServer**: Use Godot 4.3+ native HTTPServer instead of addon
+   - Better performance
+   - No external dependencies
+   - Native integration with Godot networking
+
+2. **WebSocket**: Use native WebSocketServer/WebSocketPeer
+   - More reliable than third-party addons
+   - Better integration with Godot's networking
+   - ENet available for game-specific networking
+
+3. **UI Framework**: Use native Control nodes + themes
+   - No need for React-like framework
+   - Scene system is more powerful for games
+   - Theme resources provide Material Design easily
+
+4. **Type System**: Use GDScript type hints
+   - Native to language
+   - Editor integration (autocomplete, validation)
+   - Runtime performance benefits
+   - No separate type definition files needed
+
+**Why Different Package Structure**:
+- React needs build step → packages have dist/ folders
+- Godot auto-loads → no dist/ needed, direct .gd files
+- React needs node_modules → Godot uses native addons
+- React needs package.json → Godot uses plugin.cfg
+
+**Why Different State Management**:
+- React: Unidirectional data flow (Redux)
+- Godot: Signal-based event system + autoload singletons
+- Godot's approach is more suitable for game architecture
+- Signals provide loose coupling between packages
+
+### Advantages of Godot Implementation
+
+**Performance**:
+- Native code execution vs JavaScript
+- Better 3D rendering performance
+- Lower memory footprint for game workloads
+- Efficient networking with ENet
+
+**Export Capabilities**:
+- 10+ platforms from single codebase
+- Native mobile apps (not just web wrapper)
+- Console support (Nintendo Switch, PlayStation, Xbox)
+- Desktop executables (Windows, Linux, macOS)
+
+**Game Development Features**:
+- Built-in physics engines (2D and 3D)
+- Animation system
+- Particle systems
+- Shader language
+- Audio engine
+- Asset import pipeline
+
+**Development Experience**:
+- Visual scene editor (no need for JSX)
+- Built-in debugger and profiler
+- Inspector for live property editing
+- Integrated documentation
+- No build step required
+
+### Challenges and Solutions
+
+**Challenge 1: No Package Manager**
+- **Solution**: Custom DependencyCatalog + addon system
+- **Benefit**: Simpler dependency management, no lock files
+
+**Challenge 2: No TypeScript-like Types**
+- **Solution**: GDScript type hints + universo-types classes
+- **Benefit**: Runtime type checking, editor integration
+
+**Challenge 3: Different HTTP Server**
+- **Solution**: Wrap native HTTPServer with Express-like API
+- **Benefit**: Familiar API for developers from web background
+
+**Challenge 4: No Material UI Library**
+- **Solution**: universo-template-godot with themed components
+- **Benefit**: Lighter weight, Godot-optimized
+
+**Challenge 5: Multiplayer Complexity**
+- **Solution**: Use Godot's built-in high-level multiplayer API
+- **Benefit**: Less code, better performance, battle-tested
 
 ## Future Enhancements
 
