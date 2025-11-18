@@ -33,19 +33,6 @@
 
 [Gates determined based on constitution file]
 
-### Mandatory Package-Based Modularity Check
-
-> **⚠️ CRITICAL GATE**: For Godot projects, verify ALL functionality is planned for `packages/` directory.
-
-- [ ] ALL feature functionality is planned for implementation in `packages/` directory
-- [ ] Frontend and backend components are separated into `-frt` and `-srv` packages
-- [ ] Each package has a `base/` subdirectory for core implementation
-- [ ] Shared code is planned in dedicated packages (e.g., `universo-types`, `universo-utils`)
-- [ ] NO feature logic is planned for root `scripts/` or `scenes/` directories
-- [ ] Package structure follows Godot addon system with `plugin.cfg` and `plugin.gd`
-
-**If any checkbox is unchecked, the plan violates constitutional requirements and MUST be redesigned.**
-
 ## Project Structure
 
 ### Documentation (this feature)
@@ -102,33 +89,6 @@ api/
 
 ios/ or android/
 └── [platform-specific structure: feature modules, UI flows, platform tests]
-
-# [REMOVE IF UNUSED] Option 4: Godot monorepo with package-based structure (MANDATORY for Godot projects)
-# NOTE: ALL functionality MUST be in packages/ directory - this is NON-NEGOTIABLE for modular architecture
-packages/
-├── {feature}-frt/         # Frontend package
-│   └── base/
-│       ├── scenes/        # Godot scenes
-│       ├── scripts/       # GDScript files
-│       ├── resources/     # Godot resources
-│       ├── plugin.cfg     # Plugin metadata
-│       └── plugin.gd      # Plugin entry point
-├── {feature}-srv/         # Backend package
-│   └── base/
-│       ├── scripts/       # Server logic
-│       ├── api/           # API endpoints
-│       ├── plugin.cfg     # Plugin metadata
-│       └── plugin.gd      # Plugin entry point
-└── universo-types/        # Shared types package (example)
-    └── base/
-        ├── scripts/       # Common data models
-        ├── plugin.cfg     # Plugin metadata
-        └── plugin.gd      # Plugin entry point
-
-scenes/                    # ONLY main entry scenes (NOT feature scenes)
-scripts/                   # ONLY autoload/singleton scripts (NOT feature logic)
-tests/                     # Test suites
-project.godot              # Godot project config
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real

@@ -46,11 +46,14 @@ universo-platformo-godot/
 
 ## Package Organization
 
+> **⚠️ MANDATORY ARCHITECTURE**: ALL functionality (except general launch/build files) MUST be implemented as packages in the `packages/` directory. This modular structure is non-negotiable and prepares for future extraction of packages into separate repositories.
+
 Each feature in Universo Platformo is organized into packages with frontend (`-frt`) and server (`-srv`) components:
 
 ### Package Naming Convention
 - `{feature}-frt/` - Frontend/client-side implementation
 - `{feature}-srv/` - Backend/server-side implementation
+- `{name}/` - Shared packages (types, utilities, resources) used across multiple features
 
 ### Base Implementation
 Each package contains a `base/` directory for the primary implementation. This structure allows for future alternative implementations while maintaining backward compatibility.
@@ -60,13 +63,30 @@ Example structure for the Clusters feature:
 packages/clusters-frt/base/
 ├── scenes/              # UI scenes for clusters
 ├── scripts/             # Client-side logic
-└── plugin.cfg           # Godot addon configuration
+├── plugin.cfg           # Godot addon configuration
+└── plugin.gd            # Plugin entry point
 
 packages/clusters-srv/base/
 ├── scripts/             # Server-side logic
 ├── api/                 # REST API endpoints
-└── plugin.cfg           # Godot addon configuration
+├── plugin.cfg           # Godot addon configuration
+└── plugin.gd            # Plugin entry point
+
+packages/universo-types/base/
+├── scripts/             # Shared data models and types
+├── plugin.cfg           # Godot addon configuration
+└── plugin.gd            # Plugin entry point
 ```
+
+### Why Packages?
+- **Modularity**: Each package is independently developable and testable
+- **Future Migration**: Packages will be extracted into separate repositories as the project matures
+- **Team Scalability**: Multiple teams can work on different packages in parallel
+- **Clear Boundaries**: Package structure enforces separation of concerns
+- **Reusability**: Shared packages avoid code duplication
+
+### Reference Implementation
+See [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react) for the conceptual reference and examples of package organization patterns.
 
 ## Core Features
 

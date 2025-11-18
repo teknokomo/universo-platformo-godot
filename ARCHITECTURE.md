@@ -6,8 +6,18 @@ This document describes the architecture of Universo Platformo Godot, explaining
 
 ## Design Principles
 
-### 1. Modular Architecture
-The system is organized into independent, reusable packages. Each feature is self-contained with clear boundaries and interfaces.
+### 1. Modular Architecture (NON-NEGOTIABLE)
+
+**CRITICAL**: The system MUST be organized into independent, reusable packages in the `packages/` directory. Each feature is self-contained with clear boundaries and interfaces. 
+
+**Implementation Requirement**: ALL functionality (except general launch/build files in the repository root) MUST be implemented within `packages/`. Implementing functionality outside of `packages/` is STRICTLY PROHIBITED and violates the project's core architecture principles.
+
+**Modular Structure Benefits**:
+- Independent development and testing of features
+- Clear separation of concerns
+- Future extraction of packages into separate repositories
+- Parallel team development on different packages
+- Reusable components across the platform
 
 ### 2. Full-Stack GDScript
 Both client and server components are written in GDScript, enabling:
@@ -16,11 +26,21 @@ Both client and server components are written in GDScript, enabling:
 - Simplified development workflow
 - Native Godot integration
 
-### 3. Package-Based Organization
-Following the monorepo pattern from Universo Platformo React, adapted for Godot:
-- Packages in `packages/` directory
-- Frontend (`-frt`) and server (`-srv`) separation
-- Base implementation in `base/` subdirectory
+### 3. Package-Based Organization (MANDATORY)
+
+Following the monorepo pattern from Universo Platformo React, adapted for Godot's native addon system:
+- **ALL packages MUST be in `packages/` directory** - no exceptions
+- Frontend (`-frt`) and server (`-srv`) MUST be separate packages
+- Base implementation MUST be in `base/` subdirectory within each package
+- Shared code MUST be in dedicated packages (e.g., `packages/universo-types`, `packages/universo-utils`)
+- Each package is a self-contained Godot plugin with `plugin.cfg` and `plugin.gd`
+
+**Package Naming Convention**:
+- Frontend packages: `packages/{feature}-frt/base/`
+- Backend packages: `packages/{feature}-srv/base/`
+- Shared packages: `packages/{name}/base/` (for types, utilities, etc.)
+
+**Future Migration**: Individual packages will be extracted into separate repositories as the project matures. The current monorepo structure facilitates initial development while preparing for future distributed architecture.
 
 ### 4. Extensibility First
 The `base/` directory pattern allows for:
@@ -106,6 +126,14 @@ The `base/` directory pattern allows for:
 
 ## Package Architecture
 
+> **⚠️ CRITICAL REQUIREMENT**: ALL feature implementation MUST occur within packages in the `packages/` directory. The only exceptions are:
+> - `project.godot` - Godot project configuration
+> - `scenes/` (root) - Main application entry scenes only (NOT feature scenes)
+> - `scripts/` (root) - Only autoload/singleton scripts for global services
+> - Build and launch scripts in repository root
+>
+> Feature logic, UI, data models, and business logic MUST be in appropriate packages. Violating this requirement compromises the project's modular architecture and future maintainability.
+
 ### Package Structure
 
 Each feature package follows this structure:
@@ -143,6 +171,20 @@ packages/{feature}-{type}/base/
   - Database operations
   - Server-side state
 - **Example**: `packages/clusters-srv/`
+
+#### Shared Packages
+- **Purpose**: Common code, types, and utilities used across multiple packages
+- **Contains**:
+  - Shared data models and types (e.g., `packages/universo-types/`)
+  - Utility functions (e.g., `packages/universo-utils/`)
+  - Common resources and assets (e.g., `packages/universo-resources/`)
+  - Shared validation logic
+  - Common constants and enums
+- **Naming Convention**: Use descriptive names without `-frt` or `-srv` suffixes
+- **Example**: `packages/universo-types/base/`
+- **Best Practice**: Create shared packages early when entities/utilities are needed by 2+ packages
+
+**Reference**: See [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react) for examples of shared entity patterns and package organization.
 
 ### Communication Patterns
 
