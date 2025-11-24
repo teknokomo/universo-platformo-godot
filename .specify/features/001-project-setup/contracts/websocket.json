@@ -1,0 +1,324 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WebSocket Message Protocol for Universo Platformo Godot",
+  "description": "Real-time synchronization message formats for entity updates",
+  "definitions": {
+    "entity_update": {
+      "type": "object",
+      "required": ["type", "entity", "action", "id", "timestamp"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "entity_update",
+          "description": "Message type identifier"
+        },
+        "entity": {
+          "type": "string",
+          "enum": ["cluster", "domain", "resource", "user"],
+          "description": "Entity type being updated"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["create", "update", "delete"],
+          "description": "CRUD action performed"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Entity ID"
+        },
+        "data": {
+          "type": "object",
+          "description": "Entity data (full object for create/update, null for delete)"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Unix timestamp when action occurred"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "User who performed the action"
+        }
+      },
+      "examples": [
+        {
+          "type": "entity_update",
+          "entity": "cluster",
+          "action": "create",
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "data": {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "My Cluster",
+            "description": "A test cluster",
+            "owner_id": "123e4567-e89b-12d3-a456-426614174000",
+            "created_at": 1699999999,
+            "updated_at": 1699999999,
+            "is_public": false,
+            "metadata": {}
+          },
+          "timestamp": 1699999999,
+          "user_id": "123e4567-e89b-12d3-a456-426614174000"
+        }
+      ]
+    },
+    "entity_subscribe": {
+      "type": "object",
+      "required": ["type", "entity"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "subscribe",
+          "description": "Subscribe to entity updates"
+        },
+        "entity": {
+          "type": "string",
+          "enum": ["cluster", "domain", "resource", "user", "all"],
+          "description": "Entity type to subscribe to (or 'all' for all entities)"
+        },
+        "filters": {
+          "type": "object",
+          "description": "Optional filters for subscription",
+          "properties": {
+            "owner_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Only receive updates for entities owned by this user"
+            },
+            "cluster_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Only receive updates for entities in this cluster"
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "type": "subscribe",
+          "entity": "cluster"
+        },
+        {
+          "type": "subscribe",
+          "entity": "domain",
+          "filters": {
+            "cluster_id": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        }
+      ]
+    },
+    "entity_unsubscribe": {
+      "type": "object",
+      "required": ["type", "entity"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "unsubscribe",
+          "description": "Unsubscribe from entity updates"
+        },
+        "entity": {
+          "type": "string",
+          "enum": ["cluster", "domain", "resource", "user", "all"],
+          "description": "Entity type to unsubscribe from"
+        }
+      },
+      "examples": [
+        {
+          "type": "unsubscribe",
+          "entity": "cluster"
+        }
+      ]
+    },
+    "conflict": {
+      "type": "object",
+      "required": ["type", "entity", "id", "server_data", "client_data"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "conflict",
+          "description": "Conflict detected during update"
+        },
+        "entity": {
+          "type": "string",
+          "enum": ["cluster", "domain", "resource"],
+          "description": "Entity type with conflict"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Entity ID"
+        },
+        "server_data": {
+          "type": "object",
+          "description": "Current server state of the entity"
+        },
+        "client_data": {
+          "type": "object",
+          "description": "Client's attempted update"
+        },
+        "server_timestamp": {
+          "type": "number",
+          "description": "Server's last update timestamp"
+        },
+        "client_timestamp": {
+          "type": "number",
+          "description": "Client's update timestamp"
+        }
+      },
+      "examples": [
+        {
+          "type": "conflict",
+          "entity": "cluster",
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "server_data": {
+            "name": "Updated Cluster Name",
+            "updated_at": 1700000100
+          },
+          "client_data": {
+            "name": "My Cluster Name",
+            "updated_at": 1700000050
+          },
+          "server_timestamp": 1700000100,
+          "client_timestamp": 1700000050
+        }
+      ]
+    },
+    "authentication": {
+      "type": "object",
+      "required": ["type", "token"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "auth",
+          "description": "Authenticate WebSocket connection"
+        },
+        "token": {
+          "type": "string",
+          "description": "JWT access token"
+        }
+      },
+      "examples": [
+        {
+          "type": "auth",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      ]
+    },
+    "auth_success": {
+      "type": "object",
+      "required": ["type", "user_id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "auth_success",
+          "description": "Authentication successful"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Authenticated user ID"
+        },
+        "message": {
+          "type": "string",
+          "description": "Success message"
+        }
+      },
+      "examples": [
+        {
+          "type": "auth_success",
+          "user_id": "123e4567-e89b-12d3-a456-426614174000",
+          "message": "Authentication successful"
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "required": ["type", "error"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "error",
+          "description": "Error occurred"
+        },
+        "error": {
+          "type": "string",
+          "description": "Error code (e.g., ERROR_AUTH_INVALID_TOKEN)"
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable error message"
+        },
+        "details": {
+          "type": "object",
+          "description": "Additional error context"
+        }
+      },
+      "examples": [
+        {
+          "type": "error",
+          "error": "ERROR_AUTH_INVALID_TOKEN",
+          "message": "The provided authentication token is invalid or expired"
+        }
+      ]
+    },
+    "ping": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "ping",
+          "description": "Ping to keep connection alive"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Client timestamp"
+        }
+      },
+      "examples": [
+        {
+          "type": "ping",
+          "timestamp": 1699999999
+        }
+      ]
+    },
+    "pong": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "pong",
+          "description": "Response to ping"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Server timestamp"
+        },
+        "client_timestamp": {
+          "type": "number",
+          "description": "Original client timestamp from ping"
+        }
+      },
+      "examples": [
+        {
+          "type": "pong",
+          "timestamp": 1700000000,
+          "client_timestamp": 1699999999
+        }
+      ]
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/entity_update" },
+    { "$ref": "#/definitions/entity_subscribe" },
+    { "$ref": "#/definitions/entity_unsubscribe" },
+    { "$ref": "#/definitions/conflict" },
+    { "$ref": "#/definitions/authentication" },
+    { "$ref": "#/definitions/auth_success" },
+    { "$ref": "#/definitions/error" },
+    { "$ref": "#/definitions/ping" },
+    { "$ref": "#/definitions/pong" }
+  ],
+  "description": "All WebSocket messages must match one of the defined message types"
+}
