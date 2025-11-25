@@ -73,6 +73,24 @@ specs/001-project-setup/
 ```text
 # Godot monorepo with mandatory package-based structure
 packages/
+├── auth-frt/                  # Authentication frontend package
+│   └── base/
+│       ├── scenes/            # UI scenes (login, register, password reset)
+│       ├── scripts/           # Client-side auth logic
+│       ├── plugin.cfg         # Plugin metadata
+│       ├── plugin.gd          # Plugin entry point
+│       ├── README.md          # English documentation
+│       └── README-RU.md       # Russian documentation
+│
+├── auth-srv/                  # Authentication backend package
+│   └── base/
+│       ├── scripts/           # Auth service logic
+│       ├── api/               # Auth API endpoints
+│       ├── plugin.cfg         # Plugin metadata
+│       ├── plugin.gd          # Plugin entry point
+│       ├── README.md          # English documentation
+│       └── README-RU.md       # Russian documentation
+│
 ├── clusters-frt/              # Clusters frontend package
 │   └── base/
 │       ├── scenes/            # UI scenes for clusters
@@ -117,16 +135,61 @@ packages/
 │       ├── README.md          # English documentation
 │       └── README-RU.md       # Russian documentation
 │
-└── universo-utils/            # Shared utilities package
-    └── base/
-        ├── scripts/           # Utility functions
-        │   ├── validator.gd
-        │   ├── logger.gd
-        │   └── crypto.gd
-        ├── plugin.cfg         # Plugin metadata
-        ├── plugin.gd          # Plugin entry point
-        ├── README.md          # English documentation
-        └── README-RU.md       # Russian documentation
+├── universo-utils/            # Shared utilities package
+│   └── base/
+│       ├── scripts/           # Utility functions
+│       │   ├── validator.gd
+│       │   ├── logger.gd
+│       │   └── crypto.gd
+│       ├── plugin.cfg         # Plugin metadata
+│       ├── plugin.gd          # Plugin entry point
+│       ├── README.md          # English documentation
+│       └── README-RU.md       # Russian documentation
+│
+├── universo-api-client/       # Shared API client package
+│   └── base/
+│       ├── scripts/           # HTTP client logic
+│       │   └── api_client.gd
+│       ├── plugin.cfg         # Plugin metadata
+│       ├── plugin.gd          # Plugin entry point
+│       ├── README.md          # English documentation
+│       └── README-RU.md       # Russian documentation
+│
+├── universo-template-godot/   # UI component library
+│   └── base/
+│       ├── components/        # Reusable UI components
+│       │   ├── material_button.tscn
+│       │   ├── material_card.tscn
+│       │   ├── material_dialog.tscn
+│       │   ├── material_input.tscn
+│       │   ├── material_list.tscn
+│       │   └── data_grid.tscn
+│       ├── plugin.cfg
+│       ├── plugin.gd
+│       ├── README.md
+│       └── README-RU.md
+│
+├── universo-i18n/             # Internationalization package
+│   └── base/
+│       ├── scripts/
+│       │   └── i18n_service.gd
+│       ├── plugin.cfg
+│       ├── plugin.gd
+│       ├── README.md
+│       └── README-RU.md
+│
+├── universo-rest-docs/        # API documentation package
+│   └── base/
+│       ├── scripts/
+│       │   └── rest_docs_generator.gd
+│       ├── api/
+│       │   └── rest_docs_endpoint.gd
+│       ├── plugin.cfg
+│       ├── plugin.gd
+│       ├── README.md
+│       └── README-RU.md
+│
+└── package-template/          # Template for new packages
 
 # Repository root (ONLY infrastructure files, NO feature logic)
 scenes/
@@ -164,7 +227,7 @@ config.json                    # Application configuration
 .env.example                   # Environment variables template
 ```
 
-**Structure Decision**: We use Option 4 (Godot monorepo with package-based structure) as this is mandatory per the constitution. All features are implemented as Godot addon packages in `packages/`, with clear separation between frontend (`-frt`) and backend (`-srv`) components. Shared code goes in dedicated packages (`universo-types`, `universo-utils`). The repository root contains ONLY infrastructure files: main entry scene, autoload singletons, tests, and configuration.
+**Structure Decision**: We use Option 4 (Godot monorepo with package-based structure) as this is mandatory per the constitution. All features are implemented as Godot addon packages in `packages/`, with clear separation between frontend (`-frt`) and backend (`-srv`) components. Shared code goes in dedicated packages (`universo-types`, `universo-utils`, `universo-api-client`, `universo-template-godot`, `universo-i18n`, `universo-rest-docs`). The repository root contains ONLY infrastructure files: main entry scene, autoload singletons, tests, and configuration.
 
 ## Complexity Tracking
 
@@ -193,19 +256,25 @@ No constitutional violations. All requirements are met:
 
 ### Phase 2: Initial Implementation (CURRENT)
 - Set up package structure in `packages/`
-- Implement base packages (universo-types, universo-utils)
+- Implement base packages (universo-types, universo-utils, universo-api-client)
 - Create autoload singletons (Config, DatabaseManager, NetworkManager, AuthManager)
 - Implement first feature: Clusters (clusters-frt, clusters-srv)
+- Implement authentication UI: (auth-frt, auth-srv)
 - Write comprehensive tests
 - Create bilingual documentation
 
-### Phase 3: Testing & Validation
+### Phase 3: Shared Packages
+- Implement UI component library (universo-template-godot)
+- Implement internationalization package (universo-i18n)
+- Implement API documentation package (universo-rest-docs)
+
+### Phase 4: Testing & Validation
 - Unit tests for all packages
 - Integration tests for API and database
 - Contract tests for API compliance
 - Manual testing of UI and workflows
 
-### Phase 4: Documentation & CI/CD
+### Phase 5: Documentation & CI/CD
 - Complete README files in English and Russian
 - API documentation
 - Developer guides

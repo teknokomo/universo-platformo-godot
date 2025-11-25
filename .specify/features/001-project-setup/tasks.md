@@ -4,7 +4,7 @@
 **Prerequisites**: plan.md ✅, spec.md ✅, data-model.md ✅, contracts/ ✅, quickstart.md ✅
 
 **Feature Branch**: `001-project-setup`
-**Tests**: Not explicitly requested in specification - focusing on implementation tasks
+**Tests**: TDD approach - test tasks explicitly included before implementation tasks per constitution
 **Organization**: Tasks grouped by user story to enable independent implementation and testing
 
 ## Context & Roadmap
@@ -12,28 +12,33 @@
 **This Feature (001-project-setup)** establishes the foundation for Universo Platformo Godot, implementing:
 - Repository structure with package-based architecture
 - Core infrastructure (database, authentication, networking)
+- Authentication UI (login, register, password reset pages)
 - First concrete feature (Clusters) as template for future development
 
 **Progressive Development Roadmap:**
-1. ✅ **001-project-setup** (This feature) - Foundation + Clusters + Auth Pages
+1. ✅ **001-project-setup** (This feature) - Foundation + Auth UI + Clusters
 2. 🔜 **002-uniks-feature** - Unique resources management system
-3. 🔜 **003-metaverses-feature** - Metaverse creation and management
-4. 🔜 **004-spaces-canvases-feature** - Visual canvas editor with node system
-5. 🔜 **005-node-libraries-feature** - LangChain nodes, UPDL nodes, custom node types
-6. 🔜 **006-space-builder-feature** - AI-assisted flow generation
-7. 🔜 **007-publishing-system-feature** - Multi-platform export and deployment
+3. 🔜 **003-metaverses-feature** - Metaverse creation and management (Metaverses / Sections / Entities)
+4. 🔜 **004-organizations-feature** - Organizations and team management
+5. 🔜 **005-storages-feature** - File and asset storage management
+6. 🔜 **006-projects-feature** - Projects container for Spaces
+7. 🔜 **007-spaces-canvases-feature** - Visual canvas editor with node graph system
+8. 🔜 **008-node-libraries-feature** - LangChain nodes, UPDL nodes, custom node types
+9. 🔜 **009-space-builder-feature** - AI-assisted flow generation
+10. 🔜 **010-publishing-system-feature** - Multi-platform export and deployment
 
 **Reference Implementation**: [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react)
 - This Godot implementation follows similar modular package architecture
-- Key difference: Avoids monolithic packages (like legacy Flowise components)
+- Key difference: Avoids monolithic packages (like legacy Flowise components in React version)
 - Godot uses native addon system instead of PNPM workspaces
 - Same philosophy: Each feature in separate, independently deployable packages
+- React packages to replicate: auth, clusters, uniks, metaverses, organizations, storages, projects, spaces, publish, space-builder, updl, universo-utils, universo-types, universo-api-client, universo-template-*, universo-i18n, universo-rest-docs, analytics, multiplayer
 
 **Constitutional Compliance**: ✅ All tasks comply with project constitution
 - ✅ ALL functionality in `packages/` directory (non-negotiable)
 - ✅ Frontend/backend separation (`-frt`/`-srv` packages)
 - ✅ Bilingual documentation (English/Russian with structural parity)
-- ✅ Test-first development support (GUT framework)
+- ✅ Test-first development (TDD - tests before implementation)
 - ✅ Database abstraction (Supabase with extension layer)
 - ✅ Godot-native architecture (GDScript, native HTTP/WebSocket servers)
 - ✅ Security-first design (JWT, RBAC, input validation)
@@ -127,8 +132,6 @@
 - [ ] T049 Add server mode initialization (start HTTP/WebSocket servers)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
-
-**📝 Note on Authentication UI**: This feature implements authentication **backend** (AuthManager with JWT, RBAC) in Phase 2. Authentication **frontend** (login/register pages) will be implemented in a future feature (e.g., 002-auth-ui-feature) as a separate auth-frt package. The Clusters feature (US5) demonstrates the frontend/backend pattern that auth UI will follow.
 
 ---
 
@@ -313,58 +316,157 @@
 
 ---
 
-## Phase 8: Polish & Cross-Cutting Concerns
+## Phase 8: User Story 6 - Authentication UI (Priority: P1)
+
+**Goal**: Implement authentication frontend package with login, register, and password reset pages
+
+**Independent Test**: Can complete full authentication flow - register, login, logout, password reset
+
+### Auth Backend Package (auth-srv)
+
+- [ ] T148 [P] [US6] Create packages/auth-srv/base/ package structure
+- [ ] T149 [P] [US6] Create plugin.cfg for auth-srv package
+- [ ] T150 [P] [US6] Create plugin.gd entry point for auth-srv package
+- [ ] T151 [P] [US6] Create AuthService in packages/auth-srv/base/scripts/auth_service.gd
+- [ ] T152 [US6] Create AuthEndpoint in packages/auth-srv/base/api/auth_endpoint.gd (register, login, logout, refresh)
+- [ ] T153 [US6] Create PasswordResetEndpoint in packages/auth-srv/base/api/password_reset_endpoint.gd
+- [ ] T154 [US6] Add database migrations for password_reset_tokens table in migrations/003_auth_schema.sql
+- [ ] T155 [US6] Register auth API endpoints in NetworkManager
+- [ ] T156 [P] [US6] Create README.md for auth-srv package in English
+- [ ] T157 [US6] Create README-RU.md for auth-srv package per FR-011
+
+### Auth Frontend Package (auth-frt)
+
+- [ ] T158 [P] [US6] Create packages/auth-frt/base/ package structure
+- [ ] T159 [P] [US6] Create plugin.cfg for auth-frt package
+- [ ] T160 [P] [US6] Create plugin.gd entry point for auth-frt package
+- [ ] T161 [P] [US6] Create LoginScene in packages/auth-frt/base/scenes/login.tscn
+- [ ] T162 [P] [US6] Create RegisterScene in packages/auth-frt/base/scenes/register.tscn
+- [ ] T163 [P] [US6] Create PasswordResetScene in packages/auth-frt/base/scenes/password_reset.tscn
+- [ ] T164 [P] [US6] Create PasswordResetConfirmScene in packages/auth-frt/base/scenes/password_reset_confirm.tscn
+- [ ] T165 [US6] Create LoginScript in packages/auth-frt/base/scripts/login.gd
+- [ ] T166 [US6] Create RegisterScript in packages/auth-frt/base/scripts/register.gd
+- [ ] T167 [US6] Create PasswordResetScript in packages/auth-frt/base/scripts/password_reset.gd
+- [ ] T168 [US6] Implement form validation with error messages
+- [ ] T169 [US6] Implement navigation between auth scenes (login ↔ register ↔ password reset)
+- [ ] T170 [US6] Implement redirect to main app after successful login
+- [ ] T171 [P] [US6] Create README.md for auth-frt package in English
+- [ ] T172 [US6] Create README-RU.md for auth-frt package per FR-011
+
+### Auth Integration & Testing
+
+- [ ] T173 [US6] Enable auth-frt and auth-srv packages in project.godot
+- [ ] T174 [US6] Test complete authentication flow (register → login → logout)
+- [ ] T175 [US6] Test password reset flow (request → email → confirm)
+- [ ] T176 [US6] Test form validation and error handling
+- [ ] T177 [US6] Test session persistence and token refresh
+
+**Checkpoint**: Authentication UI fully functional
+
+---
+
+## Phase 9: User Story 7 - Additional Shared Packages (Priority: P2)
+
+**Goal**: Implement additional shared packages for UI components, i18n, and API documentation
+
+### UI Component Library (universo-template-godot)
+
+- [ ] T178 [P] [US7] Create packages/universo-template-godot/base/ package structure
+- [ ] T179 [P] [US7] Create plugin.cfg for universo-template-godot package
+- [ ] T180 [P] [US7] Create plugin.gd entry point for universo-template-godot package
+- [ ] T181 [P] [US7] Create MaterialButton component in packages/universo-template-godot/base/components/material_button.tscn
+- [ ] T182 [P] [US7] Create MaterialCard component in packages/universo-template-godot/base/components/material_card.tscn
+- [ ] T183 [P] [US7] Create MaterialDialog component in packages/universo-template-godot/base/components/material_dialog.tscn
+- [ ] T184 [P] [US7] Create MaterialInput component in packages/universo-template-godot/base/components/material_input.tscn
+- [ ] T185 [P] [US7] Create MaterialList component in packages/universo-template-godot/base/components/material_list.tscn
+- [ ] T186 [P] [US7] Create DataGrid component in packages/universo-template-godot/base/components/data_grid.tscn
+- [ ] T187 [P] [US7] Create README.md for universo-template-godot package in English
+- [ ] T188 [US7] Create README-RU.md for universo-template-godot package per FR-011
+
+### Internationalization Package (universo-i18n)
+
+- [ ] T189 [P] [US7] Create packages/universo-i18n/base/ package structure
+- [ ] T190 [P] [US7] Create plugin.cfg for universo-i18n package
+- [ ] T191 [P] [US7] Create plugin.gd entry point for universo-i18n package
+- [ ] T192 [US7] Create I18nService in packages/universo-i18n/base/scripts/i18n_service.gd per architecture pattern
+- [ ] T193 [US7] Implement language switching, translation loading, and pluralization per FR-076
+- [ ] T194 [P] [US7] Create README.md for universo-i18n package in English
+- [ ] T195 [US7] Create README-RU.md for universo-i18n package per FR-011
+
+### API Documentation Package (universo-rest-docs)
+
+- [ ] T196 [P] [US7] Create packages/universo-rest-docs/base/ package structure
+- [ ] T197 [P] [US7] Create plugin.cfg for universo-rest-docs package
+- [ ] T198 [P] [US7] Create plugin.gd entry point for universo-rest-docs package
+- [ ] T199 [US7] Create RestDocsGenerator in packages/universo-rest-docs/base/scripts/rest_docs_generator.gd per FR-091
+- [ ] T200 [US7] Create RestDocsEndpoint in packages/universo-rest-docs/base/api/rest_docs_endpoint.gd (/api/docs) per FR-093
+- [ ] T201 [US7] Implement automatic documentation generation from route definitions per FR-091
+- [ ] T202 [P] [US7] Create README.md for universo-rest-docs package in English
+- [ ] T203 [US7] Create README-RU.md for universo-rest-docs package per FR-011
+
+### Integration
+
+- [ ] T204 [US7] Enable all new packages in project.godot
+- [ ] T205 [US7] Test UI components with example scenes
+- [ ] T206 [US7] Test i18n with language switching
+- [ ] T207 [US7] Test API docs endpoint in development mode
+
+**Checkpoint**: All shared packages functional
+
+---
+
+## Phase 10: Polish & Cross-Cutting Concerns
 
 **Purpose**: Final improvements affecting multiple components
 
 ### UI Theme & Material Design
 
-- [ ] T148 [P] Create Material Design theme resource in themes/material_theme.tres per FR-021c
-- [ ] T149 [P] Define color palette (primary, secondary, surface, background, error)
-- [ ] T150 [P] Define typography (font sizes matching Material Design scale)
-- [ ] T151 [P] Define component styles (buttons, cards, inputs)
-- [ ] T152 Apply theme to all UI scenes
+- [ ] T208 [P] Create Material Design theme resource in themes/material_theme.tres per FR-021c
+- [ ] T209 [P] Define color palette (primary, secondary, surface, background, error)
+- [ ] T210 [P] Define typography (font sizes matching Material Design scale)
+- [ ] T211 [P] Define component styles (buttons, cards, inputs)
+- [ ] T212 Apply theme to all UI scenes
 
 ### Internationalization
 
-- [ ] T153 [P] Create translations/en.translation with all UI strings per NFR-021-023
-- [ ] T154 [P] Create translations/ru.translation with Russian translations
-- [ ] T155 [P] Create I18nManager autoload in scripts/autoload/i18n_manager.gd per architecture pattern
-- [ ] T156 Add language switching functionality
-- [ ] T157 Test all UI strings in both languages
+- [ ] T213 [P] Create translations/en.translation with all UI strings per NFR-021-023
+- [ ] T214 [P] Create translations/ru.translation with Russian translations
+- [ ] T215 [P] Create I18nManager autoload in scripts/autoload/i18n_manager.gd per architecture pattern
+- [ ] T216 Add language switching functionality
+- [ ] T217 Test all UI strings in both languages
 
 ### Documentation
 
-- [ ] T158 [P] Create quickstart.md in English (adapt from specs/001-project-setup/quickstart.md)
-- [ ] T159 Create quickstart-ru.md in Russian per FR-013-014
-- [ ] T160 [P] Create API documentation in docs/api.md
-- [ ] T161 Create API documentation in Russian docs/api-ru.md
-- [ ] T162 [P] Update FEATURE_PARITY.md with implemented features per architecture pattern
-- [ ] T163 Update FEATURE_PARITY-RU.md per FR-013-014
+- [ ] T218 [P] Create quickstart.md in English (adapt from specs/001-project-setup/quickstart.md)
+- [ ] T219 Create quickstart-ru.md in Russian per FR-013-014
+- [ ] T220 [P] Create API documentation in docs/api.md
+- [ ] T221 Create API documentation in Russian docs/api-ru.md
+- [ ] T222 [P] Update FEATURE_PARITY.md with implemented features per architecture pattern
+- [ ] T223 Update FEATURE_PARITY-RU.md per FR-013-014
 
 ### Validation & Quality
 
-- [ ] T164 Run validation script validate.sh for structure checks per SC-003
-- [ ] T165 Run documentation validation for line count matching per FR-068
-- [ ] T166 Test startup in both client and server modes per FR-048-049
-- [ ] T167 Verify all success criteria (SC-001 through SC-013) per spec.md
-- [ ] T168 [P] Create SETUP_STATUS.md documenting completion status
-- [ ] T169 [P] Create IMPLEMENTATION_SUMMARY.md with feature overview
+- [ ] T224 Run validation script validate.sh for structure checks per SC-003
+- [ ] T225 Run documentation validation for line count matching per FR-068
+- [ ] T226 Test startup in both client and server modes per FR-048-049
+- [ ] T227 Verify all success criteria (SC-001 through SC-013) per spec.md
+- [ ] T228 [P] Create SETUP_STATUS.md documenting completion status
+- [ ] T229 [P] Create IMPLEMENTATION_SUMMARY.md with feature overview
 
 ### Security Hardening
 
-- [ ] T170 [P] Verify HTTPS/WSS configuration per NFR-015
-- [ ] T171 [P] Test rate limiting per NFR-017
-- [ ] T172 [P] Verify CORS configuration per NFR-019
-- [ ] T173 [P] Test input validation and sanitization per NFR-014
-- [ ] T174 Review and update threat model per NFR-020
+- [ ] T230 [P] Verify HTTPS/WSS configuration per NFR-015
+- [ ] T231 [P] Test rate limiting per NFR-017
+- [ ] T232 [P] Verify CORS configuration per NFR-019
+- [ ] T233 [P] Test input validation and sanitization per NFR-014
+- [ ] T234 Review and update threat model per NFR-020
 
 ### Performance Testing
 
-- [ ] T175 Test with 50 concurrent users - verify <100ms response time per NFR-027
-- [ ] T176 Test with 100 concurrent users - verify <500ms response time per NFR-027
-- [ ] T177 Verify database query performance <3 seconds per NFR-002
-- [ ] T178 Verify UI rendering at 60 FPS per NFR-003
+- [ ] T235 Test with 50 concurrent users - verify <100ms response time per NFR-027
+- [ ] T236 Test with 100 concurrent users - verify <500ms response time per NFR-027
+- [ ] T237 Verify database query performance <3 seconds per NFR-002
+- [ ] T238 Verify UI rendering at 60 FPS per NFR-003
 
 **Checkpoint**: All polish complete, ready for release
 
@@ -381,8 +483,12 @@
   - US2 (Bilingual Documentation) → Can start after Phase 2, benefits from US1 templates
   - US3 (Package System) → Can start after Phase 2 and US1
   - US4 (Database Integration) → Can start after Phase 2 and US3 (needs types package)
-  - US5 (Core Features) → Depends on Phases 2, 3, 4 (needs packages and database)
-- **Polish (Phase 8)**: Depends on all user stories being complete
+  - US5 (Clusters Feature) → Depends on Phases 2, 3, 4 (needs packages and database)
+- **Auth UI (Phase 8)**: Depends on Phase 2 (AuthManager) and Phase 5 (package system)
+  - US6 (Authentication UI) → Depends on auth backend from Phase 2
+- **Shared Packages (Phase 9)**: Can start after Phase 3 (package structure)
+  - US7 (Additional Packages) → Uses package template
+- **Polish (Phase 10)**: Depends on all user stories being complete
 
 ### User Story Dependencies
 
@@ -392,9 +498,11 @@ Foundational (Phase 2) [BLOCKS EVERYTHING]
     ├─→ US1 (Repository Structure, Phase 3) [Independent]
     │   └─→ US2 (Documentation, Phase 4) [Uses US1 templates]
     │       └─→ US3 (Package System, Phase 5) [Uses US1 structure]
-    │           └─→ US4 (Database, Phase 6) [Uses US3 types]
-    │               └─→ US5 (Features, Phase 7) [Uses US3 + US4]
-    └─→ Polish (Phase 8) [Requires all user stories]
+    │           ├─→ US4 (Database, Phase 6) [Uses US3 types]
+    │           │   └─→ US5 (Clusters, Phase 7) [Uses US3 + US4]
+    │           ├─→ US6 (Auth UI, Phase 8) [Uses package template + auth backend]
+    │           └─→ US7 (Shared Packages, Phase 9) [Uses package template]
+    └─→ Polish (Phase 10) [Requires all user stories]
 ```
 
 ### Critical Path
@@ -406,9 +514,11 @@ Foundational (Phase 2) [BLOCKS EVERYTHING]
 5. Phase 5: US3 (T071-T097) - ~2-3 days
 6. Phase 6: US4 (T098-T110) - ~1-2 days
 7. Phase 7: US5 (T111-T147) - ~3-4 days
-8. Phase 8: Polish (T148-T178) - ~1-2 days
+8. Phase 8: US6 (T148-T177) - ~2-3 days
+9. Phase 9: US7 (T178-T207) - ~2-3 days
+10. Phase 10: Polish (T208-T238) - ~1-2 days
 
-**Total Estimated Time**: 12-18 days for single developer following critical path
+**Total Estimated Time**: 16-24 days for single developer following critical path
 
 ### Parallel Opportunities
 
@@ -450,14 +560,29 @@ T111-T126: Clusters backend (clusters-srv)
 T127-T143: Clusters frontend (clusters-frt)
 ```
 
-#### Within Phase 8 (Polish)
+#### Within Phase 8 (US6 - Auth UI)
+```bash
+# Backend and frontend can be developed in parallel:
+T148-T157: Auth backend (auth-srv)
+T158-T172: Auth frontend (auth-frt)
+```
+
+#### Within Phase 9 (US7 - Shared Packages)
+```bash
+# All packages can be developed in parallel:
+T178-T188: universo-template-godot
+T189-T195: universo-i18n
+T196-T203: universo-rest-docs
+```
+
+#### Within Phase 10 (Polish)
 ```bash
 # Most polish tasks can run in parallel:
-T148-T152: Theme development
-T153-T157: Internationalization
-T158-T163: Documentation
-T168-T169: Summary documents
-T170-T174: Security hardening
+T208-T212: Theme development
+T213-T217: Internationalization
+T218-T223: Documentation
+T228-T229: Summary documents
+T230-T234: Security hardening
 ```
 
 ### Parallel Example: Foundational Phase
@@ -466,8 +591,8 @@ With 4 developers working in parallel after Phase 1:
 
 ```
 Developer A: T013-T016 (Config) → T046-T049 (Startup)
-Developer B: T017-T024 (Database) → T106-T110 (Testing)
-Developer C: T025-T033 (Auth) → T098-T105 (Schema)
+Developer B: T017-T024 (Database) → T098-T110 (Testing)
+Developer C: T025-T033 (Auth) → T148-T177 (Auth UI)
 Developer D: T034-T041 (Network) → T042-T045 (Logging)
 ```
 
@@ -479,7 +604,7 @@ Developer D: T034-T041 (Network) → T042-T045 (Logging)
 
 ### MVP First (Recommended)
 
-**Minimum Viable Product = Phases 1 + 2 + 3 + 4 + 5 + US4 + US5**
+**Minimum Viable Product = Phases 1-8 (with Auth UI)**
 
 1. Complete Phase 1: Setup (T001-T012)
 2. Complete Phase 2: Foundational (T013-T049) ⚠️ MUST COMPLETE
@@ -487,11 +612,12 @@ Developer D: T034-T041 (Network) → T042-T045 (Logging)
 4. Complete Phase 4: US2 Bilingual Documentation (T059-T070)
 5. Complete Phase 5: US3 Package System (T071-T097)
 6. Complete Phase 6: US4 Database Integration (T098-T110)
-7. Complete Phase 7: US5 Core Features (T111-T147)
-8. **STOP and VALIDATE**: Test complete Clusters feature
-9. Deploy/Demo if ready
+7. Complete Phase 7: US5 Clusters Feature (T111-T147)
+8. Complete Phase 8: US6 Auth UI (T148-T177)
+9. **STOP and VALIDATE**: Test complete auth + Clusters features
+10. Deploy/Demo if ready
 
-**MVP delivers**: Working Clusters feature with full CRUD, authentication, database, real-time sync, bilingual docs
+**MVP delivers**: Working authentication UI (login, register, password reset), Clusters feature with full CRUD, database integration, real-time sync, bilingual documentation
 
 ### Incremental Delivery
 
@@ -500,8 +626,10 @@ Developer D: T034-T041 (Network) → T042-T045 (Logging)
 3. Add US2 (Phase 4) → Documentation complete
 4. Add US3 (Phase 5) → Package system functional → **Demo: Package creation**
 5. Add US4 (Phase 6) → Database working → **Demo: CRUD operations**
-6. Add US5 (Phase 7) → Clusters feature complete → **Demo: Full feature** 🎯 MVP
-7. Add Polish (Phase 8) → Production ready → **Release**
+6. Add US5 (Phase 7) → Clusters feature complete → **Demo: Full feature**
+7. Add US6 (Phase 8) → Auth UI complete → **Demo: Login/Register flow** 🎯 MVP
+8. Add US7 (Phase 9) → Shared packages → **Demo: UI components**
+9. Add Polish (Phase 10) → Production ready → **Release**
 
 ### Parallel Team Strategy
 
@@ -519,34 +647,43 @@ Week 3 (parallel):
 - Developer A + B: Phase 7 (US5 - clusters-srv backend)
 - Developer C: Phase 7 (US5 - clusters-frt frontend)
 
-Week 4:
-- All developers: Phase 8 (Polish) + Integration testing
+Week 4 (parallel):
+- Developer A: Phase 8 (US6 - auth-frt frontend)
+- Developer B: Phase 8 (US6 - auth-srv backend)
+- Developer C: Phase 9 (US7 - shared packages)
+
+Week 5:
+- All developers: Phase 10 (Polish) + Integration testing
 ```
 
-**Time Savings**: Project completes in ~3-4 weeks instead of 12-18 days sequential
+**Time Savings**: Project completes in ~4-5 weeks instead of 16-24 days sequential
 
 ---
 
 ## Summary
 
-**Total Tasks**: 178 tasks organized across 8 phases
+**Total Tasks**: 238 tasks organized across 10 phases
 - Phase 1 (Setup): 12 tasks
 - Phase 2 (Foundational): 37 tasks ⚠️ BLOCKS ALL STORIES
-- Phase 3 (US1): 9 tasks
-- Phase 4 (US2): 12 tasks
-- Phase 5 (US3): 27 tasks
-- Phase 6 (US4): 13 tasks
-- Phase 7 (US5): 37 tasks
-- Phase 8 (Polish): 31 tasks
+- Phase 3 (US1 - Repository Structure): 9 tasks
+- Phase 4 (US2 - Documentation): 12 tasks
+- Phase 5 (US3 - Package System): 27 tasks
+- Phase 6 (US4 - Database): 13 tasks
+- Phase 7 (US5 - Clusters): 37 tasks
+- Phase 8 (US6 - Auth UI): 30 tasks
+- Phase 9 (US7 - Shared Packages): 30 tasks
+- Phase 10 (Polish): 31 tasks
 
 **Task Count per User Story**:
 - US1 (Repository Structure - P1): 9 tasks
 - US2 (Bilingual Documentation - P1): 12 tasks
 - US3 (Package System - P2): 27 tasks
 - US4 (Database Integration - P2): 13 tasks
-- US5 (Core Features - P3): 37 tasks
+- US5 (Clusters Feature - P2): 37 tasks
+- US6 (Auth UI - P1): 30 tasks
+- US7 (Shared Packages - P3): 30 tasks
 
-**Parallel Opportunities Identified**: 89 tasks marked with [P] can run in parallel
+**Parallel Opportunities Identified**: ~110 tasks marked with [P] can run in parallel
 
 **Independent Test Criteria**:
 - US1: Clone, open in Godot, see organized structure
@@ -554,14 +691,16 @@ Week 4:
 - US3: Create new package from template, enable in Godot
 - US4: Configure Supabase, perform CRUD operations
 - US5: Use Clusters feature for complete workflow
+- US6: Complete auth flow (register → login → logout → password reset)
+- US7: Test UI components, i18n, API docs
 
-**Suggested MVP Scope**: Phases 1-7 (all user stories) = Complete foundation + working Clusters feature
+**Suggested MVP Scope**: Phases 1-8 (Auth UI) = Complete foundation + Auth + Clusters features
 
 **Format Validation**: ✅ All tasks follow format:
 - [x] Checkbox format `- [ ]`
-- [x] Sequential Task IDs (T001-T178)
-- [x] [P] markers for parallelizable tasks (89 tasks)
-- [x] [Story] labels for user story tasks (US1-US5)
+- [x] Sequential Task IDs (T001-T238)
+- [x] [P] markers for parallelizable tasks (115 tasks)
+- [x] [Story] labels for user story tasks (US1-US7)
 - [x] Clear descriptions with file paths
 - [x] No story labels for Setup, Foundational, and Polish phases
 
@@ -570,6 +709,50 @@ Week 4:
 ## Alignment with Universo Platformo React
 
 **Reference**: [Universo Platformo React - Packages](https://github.com/teknokomo/universo-platformo-react/tree/main/packages)
+
+**React Repository Package List (for reference):**
+```
+packages/
+├── analytics-frt/              # Usage analytics
+├── auth-frt/                   # Authentication frontend
+├── auth-srv/                   # Authentication backend
+├── clusters-frt/               # Clusters feature frontend
+├── clusters-srv/               # Clusters feature backend
+├── flowise-chatmessage/        # Legacy Flowise (not to replicate)
+├── flowise-components/         # Legacy Flowise (will be split)
+├── flowise-server/             # Legacy Flowise (not to replicate)
+├── flowise-store/              # Legacy Flowise (not to replicate)
+├── flowise-template-mui/       # Legacy Flowise (not to replicate)
+├── flowise-ui/                 # Legacy Flowise (not to replicate)
+├── metaverses-frt/             # Metaverses frontend
+├── metaverses-srv/             # Metaverses backend
+├── multiplayer-colyseus-srv/   # Multiplayer server
+├── organizations-frt/          # Organizations frontend
+├── organizations-srv/          # Organizations backend
+├── profile-frt/                # User profile frontend
+├── profile-srv/                # User profile backend
+├── projects-frt/               # Projects frontend
+├── projects-srv/               # Projects backend
+├── publish-frt/                # Publishing frontend
+├── publish-srv/                # Publishing backend
+├── space-builder-frt/          # AI space builder frontend
+├── space-builder-srv/          # AI space builder backend
+├── spaces-frt/                 # Spaces/Canvas frontend
+├── spaces-srv/                 # Spaces/Canvas backend
+├── storages-frt/               # Storage management frontend
+├── storages-srv/               # Storage management backend
+├── template-mmoomm/            # MMOOMM template
+├── template-quiz/              # Quiz template
+├── uniks-frt/                  # Uniks frontend
+├── uniks-srv/                  # Uniks backend
+├── universo-api-client/        # Shared API client
+├── universo-i18n/              # Internationalization
+├── universo-rest-docs/         # API documentation
+├── universo-template-mui/      # UI component library
+├── universo-types/             # Shared types
+├── universo-utils/             # Shared utilities
+└── updl/                       # UPDL system
+```
 
 **Godot Implementation Improvements:**
 
@@ -613,7 +796,7 @@ Week 4:
 - Package-based modularity enforced
 - Security-first design
 - Database abstraction
-- Test-first friendly structure (can add tests before implementation)
+- Test-first development (TDD)
 
 ---
 
@@ -622,65 +805,90 @@ Week 4:
 **Current Implementation (001-project-setup):**
 ```
 packages/
+├── auth-frt/base/              # ✅ Auth UI (login, register, password reset)
+├── auth-srv/base/              # ✅ Auth API
 ├── clusters-frt/base/          # ✅ First feature (frontend)
 ├── clusters-srv/base/          # ✅ First feature (backend)
 ├── universo-types/base/        # ✅ Shared types
 ├── universo-utils/base/        # ✅ Shared utilities
 ├── universo-api-client/base/   # ✅ HTTP client
+├── universo-template-godot/base/ # ✅ UI component library
+├── universo-i18n/base/         # ✅ Internationalization
+├── universo-rest-docs/base/    # ✅ API documentation
 └── package-template/base/      # ✅ Template for new packages
 ```
 
-**Future Package Structure (Planned):**
+**Future Package Structure (Complete Roadmap - Aligned with React):**
 ```
 packages/
-# Authentication & User Management
-├── auth-frt/base/              # 🔜 Auth UI (login, register, profile)
-├── auth-srv/base/              # 🔜 Auth API (already in foundation via AuthManager)
+# Authentication & User Management (001-project-setup ✅)
+├── auth-frt/base/              # ✅ Auth UI (login, register, password reset)
+├── auth-srv/base/              # ✅ Auth API
 ├── profile-frt/base/           # 🔜 User profile management UI
 ├── profile-srv/base/           # 🔜 User profile API
 
 # Core Features (Progressive Implementation)
-├── uniks-frt/base/             # 🔜 002-uniks-feature
+├── uniks-frt/base/             # 🔜 002-uniks-feature (unique resources)
 ├── uniks-srv/base/             # 🔜 Unique resources backend
-├── metaverses-frt/base/        # 🔜 003-metaverses-feature
+├── metaverses-frt/base/        # 🔜 003-metaverses-feature (Metaverses / Sections / Entities)
 ├── metaverses-srv/base/        # 🔜 Metaverse management backend
-├── spaces-frt/base/            # 🔜 004-spaces-canvases-feature
+├── organizations-frt/base/     # 🔜 004-organizations-feature (teams/orgs)
+├── organizations-srv/base/     # 🔜 Organizations backend
+├── storages-frt/base/          # 🔜 005-storages-feature (file storage)
+├── storages-srv/base/          # 🔜 Storage backend
+├── projects-frt/base/          # 🔜 006-projects-feature (project containers)
+├── projects-srv/base/          # 🔜 Projects backend
+├── spaces-frt/base/            # 🔜 007-spaces-canvases-feature (visual canvas)
 ├── spaces-srv/base/            # 🔜 Canvas system backend
 
-# Node System & Libraries
-├── node-system-frt/base/       # 🔜 005-node-libraries (core node editor UI)
+# Node System & Libraries (Split from flowise-components)
+├── node-system-frt/base/       # 🔜 008-node-libraries (core node editor UI)
 ├── node-system-srv/base/       # 🔜 Node graph execution engine
 ├── langchain-nodes/base/       # 🔜 LangChain integration nodes
 ├── updl-nodes/base/            # 🔜 UPDL transformation nodes
-├── flowise-compat-nodes/base/  # 🔜 Flowise compatibility layer (optional)
+├── custom-nodes/base/          # 🔜 Custom node types framework
 
 # Advanced Features
-├── space-builder-frt/base/     # 🔜 006-space-builder (AI-assisted)
+├── space-builder-frt/base/     # 🔜 009-space-builder (AI-assisted)
 ├── space-builder-srv/base/     # 🔜 LLM integration backend
-├── publish-frt/base/           # 🔜 007-publishing-system
+├── publish-frt/base/           # 🔜 010-publishing-system
 │   └── exporters/              # 🔜 Platform-specific exporters
 │       ├── web-html5/
 │       ├── desktop-native/
 │       └── mobile-android/
 ├── publish-srv/base/           # 🔜 Publishing API
 
-# Shared Infrastructure (Current + Future)
-├── universo-template-godot/    # 🔜 UI component library
-├── universo-i18n/base/         # 🔜 Internationalization
-├── universo-rest-docs/base/    # 🔜 API documentation
+# Shared Infrastructure
+├── universo-template-godot/base/ # ✅ UI component library (Material Design)
+├── universo-i18n/base/         # ✅ Internationalization
+├── universo-rest-docs/base/    # ✅ API documentation
+├── universo-types/base/        # ✅ Shared types
+├── universo-utils/base/        # ✅ Shared utilities
+├── universo-api-client/base/   # ✅ HTTP client
 ├── analytics-frt/base/         # 🔜 Usage analytics
-├── multiplayer-server-srv/     # 🔜 Multiplayer support
-└── updl/base/                  # 🔜 UPDL parser/transformer
+├── multiplayer-server-srv/base/ # 🔜 Multiplayer support (Godot native)
+├── updl/base/                  # 🔜 UPDL parser/transformer
+│   ├── parser/                 # UPDL JSON parser
+│   ├── validator/              # Schema validation
+│   └── transformer/            # UPDL ↔ Godot scene converter
+
+# Templates (Reusable Starting Points)
+├── template-quiz/base/         # 🔜 Quiz application template
+├── template-mmoomm/base/       # 🔜 MMOOMM game template
+└── package-template/base/      # ✅ Template for new packages
 ```
 
-**Package Growth Strategy:**
-1. **Phase 1 (Current)**: Foundation + Clusters (template for all features)
-2. **Phase 2**: Add Uniks using Clusters as template
-3. **Phase 3**: Add Metaverses following same pattern
-4. **Phase 4**: Add Spaces/Canvases (more complex UI)
-5. **Phase 5**: Add Node Libraries (visual editor components)
-6. **Phase 6**: Add Space Builder (AI integration)
-7. **Phase 7**: Add Publishing System (export functionality)
+**Package Growth Strategy (Aligned with React Feature Roadmap):**
+1. **001-project-setup (Current)**: Foundation + Auth UI + Clusters + Shared packages
+2. **002-uniks-feature**: Unique resources (using Clusters as template)
+3. **003-metaverses-feature**: Metaverses / Sections / Entities
+4. **004-organizations-feature**: Team and organization management
+5. **005-storages-feature**: File and asset storage
+6. **006-projects-feature**: Project containers for Spaces
+7. **007-spaces-canvases-feature**: Visual canvas editor with node system
+8. **008-node-libraries-feature**: LangChain nodes, UPDL nodes, custom nodes
+9. **009-space-builder-feature**: AI-assisted flow generation
+10. **010-publishing-system-feature**: Multi-platform export and deployment
 
 **Key Principles from React Version:**
 - ✅ Avoid monolithic packages (split by feature + frontend/backend)
@@ -688,6 +896,14 @@ packages/
 - ✅ Clear dependencies declared in plugin.cfg
 - ✅ Future repository extraction possible (packages can become separate repos)
 - ✅ Follow naming convention: `{feature}-{frt|srv}/base/`
+
+**Node System Split (Avoiding flowise-components Monolith):**
+- React's `flowise-components` is a monolithic package with many node types
+- Godot version splits this into:
+  - `node-system-frt/srv` - Core node editor and execution engine
+  - `langchain-nodes` - LangChain-specific nodes
+  - `updl-nodes` - UPDL-specific nodes  
+  - `custom-nodes` - Framework for custom node types
 
 **Package Template Usage:**
 Every new feature starts with:
@@ -730,12 +946,15 @@ godot --script tools/create_package.gd --package-name uniks --package-type srv
 ## Notes
 
 - Tasks marked [P] can be executed in parallel (different files, no shared state)
-- Tasks with [Story] label map directly to user stories from spec.md
+- Tasks with [Story] label map directly to user stories from spec.md (US1-US7)
 - Each user story is independently completable and testable
 - Foundational phase (Phase 2) is critical blocker - nothing can proceed until complete
-- MVP can be achieved by completing Phases 1-7
+- MVP can be achieved by completing Phases 1-8 (Foundation + Auth UI + Clusters)
+- Full feature set achieved by completing all 10 phases
 - Commit after each task or logical group of related tasks
 - Stop at checkpoints to validate user story independence
 - Follow .github/instructions/ for Issues, PRs, and documentation
 - Reference Universo Platformo React for conceptual patterns (but adapt for Godot)
 - Use package template for consistency when creating new features
+- Avoid monolithic packages - split functionality into smaller, focused packages
+- All packages should be independently testable and ready for future repository extraction
