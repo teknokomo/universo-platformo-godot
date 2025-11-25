@@ -7,6 +7,37 @@
 **Tests**: Not explicitly requested in specification - focusing on implementation tasks
 **Organization**: Tasks grouped by user story to enable independent implementation and testing
 
+## Context & Roadmap
+
+**This Feature (001-project-setup)** establishes the foundation for Universo Platformo Godot, implementing:
+- Repository structure with package-based architecture
+- Core infrastructure (database, authentication, networking)
+- First concrete feature (Clusters) as template for future development
+
+**Progressive Development Roadmap:**
+1. ✅ **001-project-setup** (This feature) - Foundation + Clusters + Auth Pages
+2. 🔜 **002-uniks-feature** - Unique resources management system
+3. 🔜 **003-metaverses-feature** - Metaverse creation and management
+4. 🔜 **004-spaces-canvases-feature** - Visual canvas editor with node system
+5. 🔜 **005-node-libraries-feature** - LangChain nodes, UPDL nodes, custom node types
+6. 🔜 **006-space-builder-feature** - AI-assisted flow generation
+7. 🔜 **007-publishing-system-feature** - Multi-platform export and deployment
+
+**Reference Implementation**: [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react)
+- This Godot implementation follows similar modular package architecture
+- Key difference: Avoids monolithic packages (like legacy Flowise components)
+- Godot uses native addon system instead of PNPM workspaces
+- Same philosophy: Each feature in separate, independently deployable packages
+
+**Constitutional Compliance**: ✅ All tasks comply with project constitution
+- ✅ ALL functionality in `packages/` directory (non-negotiable)
+- ✅ Frontend/backend separation (`-frt`/`-srv` packages)
+- ✅ Bilingual documentation (English/Russian with structural parity)
+- ✅ Test-first development support (GUT framework)
+- ✅ Database abstraction (Supabase with extension layer)
+- ✅ Godot-native architecture (GDScript, native HTTP/WebSocket servers)
+- ✅ Security-first design (JWT, RBAC, input validation)
+
 ## Format: `- [ ] [ID] [P?] [Story?] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -96,6 +127,8 @@
 - [ ] T049 Add server mode initialization (start HTTP/WebSocket servers)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+
+**📝 Note on Authentication UI**: This feature implements authentication **backend** (AuthManager with JWT, RBAC) in Phase 2. Authentication **frontend** (login/register pages) will be implemented in a future feature (e.g., 002-auth-ui-feature) as a separate auth-frt package. The Clusters feature (US5) demonstrates the frontend/backend pattern that auth UI will follow.
 
 ---
 
@@ -532,7 +565,48 @@ Week 4:
 - [x] Clear descriptions with file paths
 - [x] No story labels for Setup, Foundational, and Polish phases
 
-**Constitution Compliance**: ✅
+---
+
+## Alignment with Universo Platformo React
+
+**Reference**: [Universo Platformo React - Packages](https://github.com/teknokomo/universo-platformo-react/tree/main/packages)
+
+**Godot Implementation Improvements:**
+
+| React Version | Godot Adaptation | Improvement |
+|---------------|------------------|-------------|
+| Monolithic flowise-components | Split into feature-specific packages | ✅ Avoids legacy monolith |
+| packages/flowise-components/ | packages/node-system-{frt,srv}/ + langchain-nodes/ + custom-nodes/ | ✅ Better separation |
+| packages/updl/base | packages/updl-nodes/ + updl/ (parser) | ✅ Clearer purpose split |
+| Mixed frontend/backend in packages | Strict -frt/-srv separation | ✅ Deployment flexibility |
+| PNPM workspace dependencies | Godot plugin.cfg dependencies | ✅ Native tool usage |
+| React components | Godot scenes (.tscn) + scripts | ✅ Engine-native approach |
+| Express routes | Godot HTTPServer handlers | ✅ Native implementation |
+
+**Pattern Preservation:**
+- ✅ **Modular packages** - Same concept, different implementation
+- ✅ **Shared utilities** - universo-utils, universo-types (same as React)
+- ✅ **Bilingual docs** - Maintained in both versions
+- ✅ **Future extraction ready** - Packages can become separate repos
+- ✅ **Template system** - package-template/ (same as React's templates)
+
+**Key Differences (By Design):**
+- 🔄 **Package manager**: PNPM → Godot addon system (appropriate for engine)
+- 🔄 **Build system**: TypeScript compiler → Godot's built-in packaging
+- 🔄 **Testing**: Jest → GUT (Godot Unit Test)
+- 🔄 **State management**: Redux → Signals + Autoload singletons
+- 🔄 **Routing**: React Router → Scene transitions
+
+**Lessons Applied from React Version:**
+1. ✅ Avoid mixing multiple features in one package (Flowise lesson)
+2. ✅ Separate shared utilities into dedicated packages
+3. ✅ Use templates for consistent package creation
+4. ✅ Plan for independent deployment of packages
+5. ✅ Maintain strict naming conventions
+
+---
+
+## Constitution Compliance
 - All functionality in packages/ directory
 - Frontend/backend separation (-frt/-srv)
 - Bilingual documentation throughout
@@ -540,6 +614,116 @@ Week 4:
 - Security-first design
 - Database abstraction
 - Test-first friendly structure (can add tests before implementation)
+
+---
+
+## Package Expansion Pattern
+
+**Current Implementation (001-project-setup):**
+```
+packages/
+├── clusters-frt/base/          # ✅ First feature (frontend)
+├── clusters-srv/base/          # ✅ First feature (backend)
+├── universo-types/base/        # ✅ Shared types
+├── universo-utils/base/        # ✅ Shared utilities
+├── universo-api-client/base/   # ✅ HTTP client
+└── package-template/base/      # ✅ Template for new packages
+```
+
+**Future Package Structure (Planned):**
+```
+packages/
+# Authentication & User Management
+├── auth-frt/base/              # 🔜 Auth UI (login, register, profile)
+├── auth-srv/base/              # 🔜 Auth API (already in foundation via AuthManager)
+├── profile-frt/base/           # 🔜 User profile management UI
+├── profile-srv/base/           # 🔜 User profile API
+
+# Core Features (Progressive Implementation)
+├── uniks-frt/base/             # 🔜 002-uniks-feature
+├── uniks-srv/base/             # 🔜 Unique resources backend
+├── metaverses-frt/base/        # 🔜 003-metaverses-feature
+├── metaverses-srv/base/        # 🔜 Metaverse management backend
+├── spaces-frt/base/            # 🔜 004-spaces-canvases-feature
+├── spaces-srv/base/            # 🔜 Canvas system backend
+
+# Node System & Libraries
+├── node-system-frt/base/       # 🔜 005-node-libraries (core node editor UI)
+├── node-system-srv/base/       # 🔜 Node graph execution engine
+├── langchain-nodes/base/       # 🔜 LangChain integration nodes
+├── updl-nodes/base/            # 🔜 UPDL transformation nodes
+├── flowise-compat-nodes/base/  # 🔜 Flowise compatibility layer (optional)
+
+# Advanced Features
+├── space-builder-frt/base/     # 🔜 006-space-builder (AI-assisted)
+├── space-builder-srv/base/     # 🔜 LLM integration backend
+├── publish-frt/base/           # 🔜 007-publishing-system
+│   └── exporters/              # 🔜 Platform-specific exporters
+│       ├── web-html5/
+│       ├── desktop-native/
+│       └── mobile-android/
+├── publish-srv/base/           # 🔜 Publishing API
+
+# Shared Infrastructure (Current + Future)
+├── universo-template-godot/    # 🔜 UI component library
+├── universo-i18n/base/         # 🔜 Internationalization
+├── universo-rest-docs/base/    # 🔜 API documentation
+├── analytics-frt/base/         # 🔜 Usage analytics
+├── multiplayer-server-srv/     # 🔜 Multiplayer support
+└── updl/base/                  # 🔜 UPDL parser/transformer
+```
+
+**Package Growth Strategy:**
+1. **Phase 1 (Current)**: Foundation + Clusters (template for all features)
+2. **Phase 2**: Add Uniks using Clusters as template
+3. **Phase 3**: Add Metaverses following same pattern
+4. **Phase 4**: Add Spaces/Canvases (more complex UI)
+5. **Phase 5**: Add Node Libraries (visual editor components)
+6. **Phase 6**: Add Space Builder (AI integration)
+7. **Phase 7**: Add Publishing System (export functionality)
+
+**Key Principles from React Version:**
+- ✅ Avoid monolithic packages (split by feature + frontend/backend)
+- ✅ Each package independently testable
+- ✅ Clear dependencies declared in plugin.cfg
+- ✅ Future repository extraction possible (packages can become separate repos)
+- ✅ Follow naming convention: `{feature}-{frt|srv}/base/`
+
+**Package Template Usage:**
+Every new feature starts with:
+```bash
+godot --script tools/create_package.gd --package-name uniks --package-type frt
+godot --script tools/create_package.gd --package-name uniks --package-type srv
+```
+
+---
+
+## Godot-Specific Best Practices Applied
+
+**Architecture Decisions:**
+- ✅ Autoload singletons for global services (Config, DatabaseManager, NetworkManager, AuthManager)
+- ✅ Plugin system for modular packages (plugin.cfg + plugin.gd per package)
+- ✅ Signals for events and cross-package communication
+- ✅ Type hints throughout (class_name, @export, typed variables)
+- ✅ Resource classes for data models (extends Resource)
+- ✅ Scene composition for UI (*.tscn files)
+
+**Godot 4.3+ Features:**
+- ✅ Native HTTPServer class for REST API
+- ✅ Native WebSocketServer/WebSocketPeer for real-time sync
+- ✅ GDScript 2.0 modern syntax
+- ✅ Built-in Control nodes with custom themes
+
+**Performance Patterns:**
+- ✅ Connection pooling for database (5-20 connections)
+- ✅ Deferred operations for non-critical tasks
+- ✅ Optimistic UI updates with server reconciliation
+- ✅ WebSocket message batching for efficiency
+
+**Testing with GUT:**
+- ✅ Unit tests per package in tests/unit/
+- ✅ Integration tests in tests/integration/
+- ✅ Contract tests for API in tests/contract/
 
 ---
 
@@ -553,3 +737,5 @@ Week 4:
 - Commit after each task or logical group of related tasks
 - Stop at checkpoints to validate user story independence
 - Follow .github/instructions/ for Issues, PRs, and documentation
+- Reference Universo Platformo React for conceptual patterns (but adapt for Godot)
+- Use package template for consistency when creating new features
