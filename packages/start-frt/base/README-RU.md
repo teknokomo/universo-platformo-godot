@@ -98,16 +98,15 @@ if AuthManager.is_authenticated:
 ## Интеграция
 
 Пакет интегрируется с:
-- **Автозагрузка AuthManager** — `scripts/autoload/auth_manager.gd`
-- **Автозагрузка Config** — читает `SUPABASE_URL` и `SUPABASE_KEY` из `.env`
-- **Автозагрузка DatabaseManager** — интеграция с базой данных Supabase
+- **Автозагрузка AuthManager** — `scripts/autoload/auth_manager.gd` (маршрутизирует вызовы в бэкенд)
+- **Автозагрузка BackendServer** — `scripts/autoload/backend_server.gd` (проксирует в Supabase)
 - **Главная сцена** — `scenes/main.tscn` / `scenes/main.gd`
 
 ## Зависимости
 
 - Godot Engine 4.3+
-- Проект Supabase с включённой аутентификацией
-- `SUPABASE_URL` и `SUPABASE_KEY`, настроенные в `.env`
+- `BACKEND_PORT`, настроенный в `.env` (по умолчанию: `8080`)
+- Работающий пакет `start-srv` (предоставляет бэкенд API)
 
 ## Участие в разработке
 

@@ -1,267 +1,169 @@
 # Universo Platformo Godot
 
-**Implementation of Universo Platformo / Universo MMOOMM / Universo Kiberplano built on Godot Engine and GDScript**
+**Implementation of Universo Platformo built on Godot Engine 4 and GDScript.**
 
 ## Overview
 
-Universo Platformo Godot is a full-stack implementation of the Universo Platformo concept using [Godot Engine](https://godotengine.org/) and GDScript. This project provides a modular, extensible platform for creating metaverse applications, multiplayer experiences, and collaborative digital spaces.
+Universo Platformo Godot is a full-stack Godot 4 implementation of the Universo Platformo
+concept, providing a modular platform for metaverse applications, multiplayer experiences,
+and collaborative digital spaces. Both frontend and backend components are written in GDScript.
 
-This implementation follows the architectural patterns established in [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react) but adapted for the Godot ecosystem, leveraging GDScript for both frontend and backend functionality.
+This project follows the architectural patterns of
+[Universo Platformo React](https://github.com/teknokomo/universo-platformo-react),
+adapted for the Godot engine ecosystem.
 
 ## Key Features
 
-- **Full-Stack GDScript**: Both client and server components written in GDScript
-- **Modular Architecture**: Package-based structure with clear separation of concerns
-- **Multiplayer Ready**: Built-in support for networking and real-time collaboration
-- **Database Integration**: Supabase support with extensibility for other databases
-- **Extensible Design**: Base implementations allow for multiple technology stack variations
+- **Full-Stack GDScript**: Both client UI and backend server written in GDScript
+- **Backend-as-Proxy for Supabase**: The frontend never calls Supabase directly;
+  all auth and database operations go through the built-in GDScript backend server
+- **Modular Package Architecture**: Features organized in `-frt` (frontend) and `-srv`
+  (backend) packages under the `packages/` directory
+- **Start Pages**: Guest landing page (sign-in / sign-up) and authenticated welcome page,
+  routing based on Supabase auth state via the `AuthManager` autoload
+- **Session Persistence**: Auth session stored locally in `user://session.json`
 - **Bilingual Documentation**: Complete documentation in English and Russian
+
+## Architecture
+
+All Supabase access goes through the local backend server. The frontend (`start-frt`)
+communicates only with the backend (`start-srv`), which holds Supabase credentials:
+
+```
+[Frontend — start-frt]          [Backend — start-srv]        [Supabase Cloud]
+  AuthManager autoload    →    BackendServer + AuthAPI   →   REST Auth API
+  no SUPABASE_URL/KEY           holds SUPABASE_URL/KEY        (external)
+  calls http://127.0.0.1:8080   proxies to Supabase
+```
+
+The backend starts as the `BackendServer` autoload, which runs a lightweight HTTP server
+accepting requests from the frontend on `127.0.0.1:8080` (configurable via `BACKEND_PORT`).
 
 ## Project Structure
 
 ```
 universo-platformo-godot/
-├── addons/                 # Third-party Godot plugins and tools
-├── packages/               # Core application packages
-│   ├── clusters-frt/      # Clusters frontend (client-side)
-│   │   └── base/          # Base implementation
-│   ├── clusters-srv/      # Clusters server (backend)
-│   │   └── base/          # Base implementation
-│   ├── metaverses-frt/    # Metaverses frontend
-│   │   └── base/
-│   ├── metaverses-srv/    # Metaverses server
-│   │   └── base/
-│   └── ...                # Other feature packages
-├── scenes/                 # Main Godot scenes
-├── scripts/                # Shared utility scripts
-├── assets/                 # Shared assets (sprites, audio, fonts)
-├── themes/                 # UI themes and styles
-├── translations/           # Internationalization files
-├── .github/                # GitHub workflows and documentation
-├── .specify/               # Specification and planning tools
-├── project.godot           # Godot project configuration
-├── README.md               # This file (English)
-└── README-RU.md           # Russian version
+├── packages/
+│   ├── start-frt/base/          # Start page frontend
+│   │   ├── scenes/              #   Guest and authenticated page scenes
+│   │   └── scripts/             #   Page controller scripts
+│   ├── start-srv/base/          # Start page backend
+│   │   └── scripts/             #   HTTP server + Auth API proxy to Supabase
+│   ├── clusters-frt/base/       # Clusters frontend (UI plugin stub)
+│   └── clusters-srv/base/       # Clusters backend (logic plugin stub)
+├── scenes/
+│   └── main.tscn                # Main scene — auth-routing entry point
+├── scripts/
+│   └── autoload/
+│       ├── config.gd            #   Reads .env and config.json
+│       ├── database_manager.gd  #   Database interface (Supabase)
+│       ├── network_manager.gd   #   Godot ENet multiplayer networking
+│       ├── backend_server.gd    #   Starts local HTTP backend server
+│       └── auth_manager.gd      #   Frontend auth state (calls backend)
+├── .env.example                 # Environment variable template
+├── config.json                  # Application feature configuration
+└── project.godot                # Godot project configuration
 ```
 
-## Package Organization
+## Packages
 
-> **⚠️ MANDATORY ARCHITECTURE**: ALL functionality (except general launch/build files) MUST be implemented as packages in the `packages/` directory. This modular structure is non-negotiable and prepares for future extraction of packages into separate repositories.
+### start-frt — Start Page Frontend
 
-Each feature in Universo Platformo is organized into packages with frontend (`-frt`) and server (`-srv`) components:
+Guest landing page with email/password sign-in and sign-up forms. Authenticated
+welcome page displaying user info and a sign-out button. `scenes/main.tscn` routes
+between them using `AuthManager.is_authenticated` and `auth_state_changed` signal.
 
-### Package Naming Convention
-- `{feature}-frt/` - Frontend/client-side implementation
-- `{feature}-srv/` - Backend/server-side implementation
-- `{name}/` - Shared packages (types, utilities, resources) used across multiple features
+### start-srv — Start Page Backend
 
-### Base Implementation
-Each package contains a `base/` directory for the primary implementation. This structure allows for future alternative implementations while maintaining backward compatibility.
+Lightweight HTTP/1.1 server (`http_server.gd`) listening on `127.0.0.1:BACKEND_PORT`.
+Auth API handler (`auth_api.gd`) proxies sign-in, sign-up, and sign-out to Supabase
+using credentials from `.env`. **Only this package accesses `SUPABASE_URL`/`SUPABASE_KEY`.**
 
-Example structure for the Clusters feature:
-```
-packages/clusters-frt/base/
-├── scenes/              # UI scenes for clusters
-├── scripts/             # Client-side logic
-├── plugin.cfg           # Godot addon configuration
-└── plugin.gd            # Plugin entry point
+### clusters-frt / clusters-srv — Clusters
 
-packages/clusters-srv/base/
-├── scripts/             # Server-side logic
-├── api/                 # REST API endpoints
-├── plugin.cfg           # Godot addon configuration
-└── plugin.gd            # Plugin entry point
-
-packages/universo-types/base/
-├── scripts/             # Shared data models and types
-├── plugin.cfg           # Godot addon configuration
-└── plugin.gd            # Plugin entry point
-```
-
-### Why Packages?
-- **Modularity**: Each package is independently developable and testable
-- **Future Migration**: Packages will be extracted into separate repositories as the project matures
-- **Team Scalability**: Multiple teams can work on different packages in parallel
-- **Clear Boundaries**: Package structure enforces separation of concerns
-- **Reusability**: Shared packages avoid code duplication
-
-### Reference Implementation
-See [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react) for the conceptual reference and examples of package organization patterns.
-
-## Core Features
-
-### Clusters System
-Manages infrastructure and resource organization through three main entities:
-- **Clusters**: Top-level organizational units
-- **Domains**: Logical groupings within clusters
-- **Resources**: Individual assets and components
-
-### Metaverses System
-Handles virtual world creation and management:
-- **Metaverses**: Virtual environment containers
-- **Sections**: Subdivisions within metaverses
-- **Entities**: Objects and actors in the metaverse
-
-### Spaces & Canvases
-Advanced features for collaborative work:
-- **Spaces**: Shared workspaces for teams
-- **Canvases**: Visual programming interfaces
-- **Nodes**: LangChain graph implementation
-- **UPDL Nodes**: Custom Universo Platform Definition Language nodes
-
-### Uniks System
-Unique resource management with extended entity hierarchy
+Plugin stubs for the Clusters feature. Frontend manages cluster UI; backend handles
+cluster data and API. Full implementation is planned for a future iteration.
 
 ## Technology Stack
 
-### Core Technologies
-- **Engine**: Godot 4.x (latest stable version)
-- **Language**: GDScript
-- **Networking**: Godot's high-level multiplayer API
-- **HTTP Server**: Custom GDScript REST API implementation
-
-### Database & Backend
-- **Primary Database**: Supabase
-- **Authentication**: Custom authentication system (GDScript implementation)
-- **API Architecture**: RESTful endpoints using GDScript HTTP server
-
-### Future Extensions
-- Support for additional databases (PostgreSQL, MongoDB, etc.)
-- Enhanced authentication methods
-- Expanded API capabilities
+| Component          | Technology                                   |
+|--------------------|----------------------------------------------|
+| Engine             | Godot 4.3+ (GDScript)                        |
+| Frontend UI        | Godot scenes and Control nodes               |
+| Backend server     | Custom GDScript HTTP server (TCPServer)      |
+| Database / Auth    | Supabase (PostgreSQL + GoTrue Auth)          |
+| Auth proxy         | GDScript HTTPRequest → Supabase REST API     |
+| Session storage    | Local file `user://session.json`             |
+| Multiplayer        | Godot ENet high-level multiplayer API        |
 
 ## Getting Started
 
 ### Prerequisites
-- Godot Engine 4.x (latest stable version)
-- Git for version control
-- Supabase account (for database functionality)
+
+- [Godot Engine 4.3+](https://godotengine.org/download/) (latest stable recommended)
+- Git
+- A [Supabase](https://supabase.com) project with authentication enabled
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/teknokomo/universo-platformo-godot.git
 cd universo-platformo-godot
 ```
 
-2. Open the project in Godot:
+2. Copy the environment template and configure:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your values:
+
+```env
+BACKEND_PORT=8080
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-key-here
+```
+
+3. Open the project in Godot Editor:
+
 ```bash
 godot --editor project.godot
 ```
 
-3. Configure environment variables:
-   - Copy `.env.example` to `.env`
-   - Add your Supabase credentials
-   - Configure other required settings
+### Running
 
-4. Enable required addons:
-   - Open Project Settings → Plugins
-   - Enable all required Universo Platformo addons
+Press **F5** in the Godot Editor, or run from the command line:
 
-### Running the Application
-
-**Client Mode:**
 ```bash
-godot --path . scenes/main.tscn
+godot --path . res://scenes/main.tscn
 ```
 
-**Server Mode (Headless):**
-```bash
-godot --headless --path . scenes/server.tscn
-```
-
-**Development Mode:**
-Open the project in Godot Editor and press F5 to run
-
-## Development Workflow
-
-### Creating New Features
-
-1. Create a specification using `/speckit.specify` command
-2. Create a GitHub Issue following `.github/instructions/github-issues.md`
-3. Apply appropriate labels per `.github/instructions/github-labels.md`
-4. Create feature branch and implement
-5. Create Pull Request following `.github/instructions/github-pr.md`
-
-### Package Development
-
-When creating a new package:
-
-1. Create package directories:
-```bash
-mkdir -p packages/{feature}-frt/base
-mkdir -p packages/{feature}-srv/base
-```
-
-2. Add `plugin.cfg` to each package base directory
-3. Implement frontend scenes and scripts in `-frt/base/`
-4. Implement backend logic in `-srv/base/`
-5. Document the package in its own README files
-
-### Documentation Standards
-
-All documentation must follow the bilingual standard:
-1. Create English documentation first (e.g., `README.md`)
-2. Create identical Russian version (e.g., `README-RU.md`)
-3. Ensure both versions have the same structure and line count
-4. Follow guidelines in `.github/instructions/i18n-docs.md`
-
-## Architecture Principles
-
-### What We Follow from React Version
-- Monorepo structure with package-based organization
-- Frontend/backend separation within features
-- Base implementation folders for future extensibility
-- Supabase as primary database
-- Bilingual documentation approach
-
-### Godot-Specific Adaptations
-- Addon/plugin system instead of npm packages
-- GDScript for both client and server
-- Godot scenes for UI components
-- Native Godot networking for multiplayer
-- Custom HTTP server for REST API
-
-### What We Don't Include
-- Documentation folder (`docs/`) - will be in separate repository
-- AI agent rules folders - created by user as needed
-- Legacy code from other implementations
-- Non-essential development files
-
-## Contributing
-
-### Before Contributing
-1. Read this README and the Russian version (README-RU.md)
-2. Review existing issues and pull requests
-3. Check the project specifications in `.specify/`
-4. Understand the labeling system in `.github/instructions/github-labels.md`
-
-### Contribution Process
-1. Create or claim an issue
-2. Fork the repository
-3. Create a feature branch
-4. Implement changes following our standards
-5. Test thoroughly
-6. Submit a pull request with complete documentation
-7. Ensure both English and Russian docs are updated
+The application starts the backend HTTP server and the frontend start page.
+Without a configured `.env`, the backend logs a warning and auth forms will
+return a "Backend not configured" error when submitted.
 
 ## Project Status
 
-This project is in active development. We are currently in the foundation phase, setting up:
-- [ ] Basic repository structure
-- [ ] Core package architecture
-- [ ] Godot project configuration
-- [ ] First feature implementation (Clusters)
-- [ ] Database integration layer
-- [ ] Authentication system
-
-Check the [Issues](https://github.com/teknokomo/universo-platformo-godot/issues) page for current tasks and progress.
+- [x] Repository structure and Godot project setup
+- [x] Core autoload system (Config, DatabaseManager, NetworkManager)
+- [x] Backend HTTP server (BackendServer, HTTPServer, AuthAPI)
+- [x] Supabase auth proxy (sign-in, sign-up, sign-out via backend)
+- [x] Frontend auth manager (routes all calls through backend only)
+- [x] Start page: guest landing with sign-in / sign-up form
+- [x] Start page: authenticated welcome with user info and sign-out
+- [x] Clusters package stubs (clusters-frt, clusters-srv)
+- [ ] Clusters full implementation
+- [ ] Metaverses, Spaces, Uniks packages
+- [ ] Headless server-mode scene
 
 ## Related Projects
 
-- [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react) - React/Express implementation (reference implementation)
-- Documentation site: `docs.universo.pro` (coming soon)
+- [Universo Platformo React](https://github.com/teknokomo/universo-platformo-react) —
+  React/Express reference implementation
+- Documentation: `docs.universo.pro` (coming soon)
 
 ## License
 
@@ -271,8 +173,4 @@ Check the [Issues](https://github.com/teknokomo/universo-platformo-godot/issues)
 
 - **Issues**: [GitHub Issues](https://github.com/teknokomo/universo-platformo-godot/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/teknokomo/universo-platformo-godot/discussions)
-- **Documentation**: Coming soon at docs.universo.pro
-
-## Acknowledgments
-
-This project builds upon the concepts established in Universo Platformo React and adapts them for the Godot Engine ecosystem. Special thanks to all contributors and the Godot community for their excellent tools and resources.
+- **Documentation**: Coming soon at `docs.universo.pro`

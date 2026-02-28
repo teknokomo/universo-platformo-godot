@@ -98,16 +98,15 @@ if AuthManager.is_authenticated:
 ## Integration
 
 This package integrates with:
-- **AuthManager autoload** — `scripts/autoload/auth_manager.gd`
-- **Config autoload** — reads `SUPABASE_URL` and `SUPABASE_KEY` from `.env`
-- **DatabaseManager autoload** — Supabase database integration
+- **AuthManager autoload** — `scripts/autoload/auth_manager.gd` (routes calls to backend)
+- **BackendServer autoload** — `scripts/autoload/backend_server.gd` (proxies to Supabase)
 - **Main scene** — `scenes/main.tscn` / `scenes/main.gd`
 
 ## Dependencies
 
 - Godot Engine 4.3+
-- Supabase project with authentication enabled
-- `SUPABASE_URL` and `SUPABASE_KEY` configured in `.env`
+- `BACKEND_PORT` configured in `.env` (default: `8080`)
+- `start-srv` package running (provides the backend API)
 
 ## Contributing
 

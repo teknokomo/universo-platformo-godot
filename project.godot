@@ -23,6 +23,7 @@ config/icon="res://icon.svg"
 Config="*res://scripts/autoload/config.gd"
 DatabaseManager="*res://scripts/autoload/database_manager.gd"
 NetworkManager="*res://scripts/autoload/network_manager.gd"
+BackendServer="*res://scripts/autoload/backend_server.gd"
 AuthManager="*res://scripts/autoload/auth_manager.gd"
 
 [display]
