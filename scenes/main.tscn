@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://bvqxrm7nvtqol"]
+[gd_scene load_steps=4 format=3 uid="uid://bvqxrm7nvtqol"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://packages/start-frt/base/scenes/guest_start_page.tscn" id="2_guest"]
+[ext_resource type="PackedScene" path="res://packages/start-frt/base/scenes/authenticated_start_page.tscn" id="3_auth"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -11,54 +13,46 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="LoadingContainer" type="CenterContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -100.0
-offset_right = 200.0
-offset_bottom = 100.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-alignment = 1
 
-[node name="Title" type="Label" parent="VBoxContainer"]
+[node name="LoadingLabel" type="Label" parent="LoadingContainer"]
 layout_mode = 2
-text = "Universo Platformo Godot"
+text = "Universo Platformo\nLoading..."
 horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
 
-[node name="Version" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "Version 0.1.0"
-horizontal_alignment = 1
+[node name="GuestStartPage" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
-layout_mode = 2
+[node name="GuestContent" parent="GuestStartPage" instance=ExtResource("2_guest")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 
-[node name="Status" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "Status: Initializing..."
-horizontal_alignment = 1
+[node name="AuthenticatedStartPage" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
 
-[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
-layout_mode = 2
-
-[node name="ButtonsContainer" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="StartServerButton" type="Button" parent="VBoxContainer/ButtonsContainer"]
-layout_mode = 2
-text = "Start Server"
-
-[node name="ConnectClientButton" type="Button" parent="VBoxContainer/ButtonsContainer"]
-layout_mode = 2
-text = "Connect as Client"
-
-[connection signal="pressed" from="VBoxContainer/ButtonsContainer/StartServerButton" to="." method="_on_start_server_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/ButtonsContainer/ConnectClientButton" to="." method="_on_connect_client_button_pressed"]
+[node name="AuthContent" parent="AuthenticatedStartPage" instance=ExtResource("3_auth")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
