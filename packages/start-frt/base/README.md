@@ -36,10 +36,10 @@ The start page routing is handled by `scenes/main.tscn` and `scenes/main.gd`, wh
 3. Display `AuthenticatedStartPage` for authenticated users
 4. React to `AuthManager.auth_state_changed` signal to switch views
 
-The `AuthManager` autoload (`scripts/autoload/auth_manager.gd`) manages all Supabase authentication:
-- Signs in via `POST /auth/v1/token?grant_type=password`
-- Signs up via `POST /auth/v1/signup`
-- Signs out via `POST /auth/v1/logout`
+The `AuthManager` autoload (`scripts/autoload/auth_manager.gd`) manages all authentication through the local backend proxy:
+- Signs in via local endpoint `POST /api/auth/sign-in` (backend proxies to Supabase)
+- Signs up via local endpoint `POST /api/auth/sign-up` (backend proxies to Supabase)
+- Signs out via local endpoint `POST /api/auth/sign-out` (backend proxies to Supabase)
 - Persists session in `user://session.json`
 
 ## Installation

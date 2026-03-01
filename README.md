@@ -16,7 +16,7 @@ adapted for the Godot engine ecosystem.
 
 - **Full-Stack GDScript**: Both client UI and backend server written in GDScript
 - **Backend-as-Proxy for Supabase**: The frontend never calls Supabase directly;
-  all auth and database operations go through the built-in GDScript backend server
+  all authentication operations go through the built-in GDScript backend server
 - **Modular Package Architecture**: Features organized in `-frt` (frontend) and `-srv`
   (backend) packages under the `packages/` directory
 - **Start Pages**: Guest landing page (sign-in / sign-up) and authenticated welcome page,

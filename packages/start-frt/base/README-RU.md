@@ -36,10 +36,10 @@ packages/start-frt/base/
 3. Отображают `AuthenticatedStartPage` для авторизованных пользователей
 4. Реагируют на сигнал `AuthManager.auth_state_changed` для переключения представлений
 
-Автозагрузка `AuthManager` (`scripts/autoload/auth_manager.gd`) управляет всей аутентификацией Supabase:
-- Вход через `POST /auth/v1/token?grant_type=password`
-- Регистрация через `POST /auth/v1/signup`
-- Выход через `POST /auth/v1/logout`
+Автозагрузка `AuthManager` (`scripts/autoload/auth_manager.gd`) управляет всей аутентификацией через локальный бэкенд-прокси:
+- Вход через локальный эндпоинт `POST /api/auth/sign-in` (бэкенд проксирует запрос в Supabase)
+- Регистрация через локальный эндпоинт `POST /api/auth/sign-up` (бэкенд проксирует запрос в Supabase)
+- Выход через локальный эндпоинт `POST /api/auth/sign-out` (бэкенд проксирует запрос в Supabase)
 - Хранение сессии в `user://session.json`
 
 ## Установка

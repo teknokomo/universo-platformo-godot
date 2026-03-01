@@ -30,7 +30,13 @@ func _start_server() -> void:
 	auth_api.name = "AuthAPI"
 	add_child(auth_api)
 
-	var port := int(Config.get_env("BACKEND_PORT", "8080"))
+	var port_str := Config.get_env("BACKEND_PORT", "8080")
+	var port := int(port_str)
+	if port < 1 or port > 65535:
+		push_error(
+			"BackendServer: Invalid BACKEND_PORT '%s'; falling back to 8080" % port_str
+		)
+		port = 8080
 	if http_server.listen(port, "127.0.0.1"):
 		auth_api.register_routes(http_server)
 		print("BackendServer: Running on http://127.0.0.1:%d" % port)
