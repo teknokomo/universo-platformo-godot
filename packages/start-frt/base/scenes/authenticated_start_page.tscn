@@ -1,0 +1,85 @@
+[gd_scene load_steps=2 format=3 uid="uid://authstartpg001"]
+
+[ext_resource type="Script" path="res://packages/start-frt/base/scripts/authenticated_start_page.gd" id="1_auth"]
+
+[node name="AuthenticatedStartPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_auth")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -200.0
+offset_right = 260.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Universo Platformo"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 32
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+
+[node name="WelcomeLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Welcome back!"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="EmailLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+modulate = Color(0.7, 0.9, 1.0, 1)
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "You are now connected to the Universo Platformo.\nExplore the open metaverse and its features."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="HSeparator3" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="SignOutButton" type="Button" parent="VBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "Sign Out"
+custom_minimum_size = Vector2(180, 44)
+
+[node name="HSeparator4" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="FooterLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Universo Platformo — Open Metaverse"
+horizontal_alignment = 1
+modulate = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+
+[connection signal="pressed" from="VBoxContainer/ButtonsContainer/SignOutButton" to="." method="_on_sign_out_button_pressed"]

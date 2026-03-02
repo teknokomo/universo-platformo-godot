@@ -1,55 +1,57 @@
 extends Control
 ## Main scene controller for Universo Platformo
 ##
-## This is the entry point of the application, handling initialization
-## and providing a basic UI for server/client mode selection.
+## Entry point of the application. Routes between the guest start page
+## (for unauthenticated users) and the authenticated start page
+## (for signed-in users) based on Supabase auth state.
 
 
-@onready var status_label: Label = $VBoxContainer/Status
+@onready var loading_container: CenterContainer = $LoadingContainer
+@onready var guest_start_page: Control = $GuestStartPage
+@onready var authenticated_start_page: Control = $AuthenticatedStartPage
 
 
 func _ready() -> void:
-	update_status("Ready")
-	
-	# Connect to network manager signals
-	NetworkManager.server_started.connect(_on_server_started)
-	NetworkManager.connected_to_server.connect(_on_connected_to_server)
-	NetworkManager.connection_failed.connect(_on_connection_failed)
-	
+	# Connect to auth state signals
+	AuthManager.auth_state_changed.connect(_on_auth_state_changed)
+	AuthManager.signed_in.connect(_on_signed_in)
+	AuthManager.signed_out.connect(_on_signed_out)
+
 	# Initialize database connection
 	DatabaseManager.connect_database()
 
-
-func update_status(message: String) -> void:
-	if status_label:
-		status_label.text = "Status: %s" % message
-	print("Status: %s" % message)
+	# Defer auth check to allow autoloads to finish initialization
+	call_deferred("_check_auth_state")
 
 
-func _on_start_server_button_pressed() -> void:
-	update_status("Starting server...")
-	if NetworkManager.start_server():
-		update_status("Server running on port %d" % NetworkManager.server_port)
+func _check_auth_state() -> void:
+	_update_view(AuthManager.is_authenticated)
+
+
+func _show_loading() -> void:
+	loading_container.visible = true
+	guest_start_page.visible = false
+	authenticated_start_page.visible = false
+
+
+func _update_view(is_authenticated: bool) -> void:
+	loading_container.visible = false
+	if is_authenticated:
+		guest_start_page.visible = false
+		authenticated_start_page.visible = true
 	else:
-		update_status("Failed to start server")
+		guest_start_page.visible = true
+		authenticated_start_page.visible = false
 
 
-func _on_connect_client_button_pressed() -> void:
-	var server_address := "127.0.0.1"
-	update_status("Connecting to server at %s..." % server_address)
-	if NetworkManager.connect_to_server(server_address):
-		update_status("Connecting...")
-	else:
-		update_status("Failed to connect")
+func _on_auth_state_changed(is_authenticated: bool) -> void:
+	_update_view(is_authenticated)
 
 
-func _on_server_started() -> void:
-	update_status("Server started successfully")
+func _on_signed_in(_user: Dictionary) -> void:
+	if AuthManager.is_authenticated:
+		_update_view(true)
 
 
-func _on_connected_to_server() -> void:
-	update_status("Connected to server")
-
-
-func _on_connection_failed(error: String) -> void:
-	update_status("Connection failed: %s" % error)
+func _on_signed_out() -> void:
+	_update_view(false)
