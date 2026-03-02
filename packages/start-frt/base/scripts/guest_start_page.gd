@@ -2,7 +2,7 @@ extends Control
 ## Guest start page for Universo Platformo
 ##
 ## Landing page shown to non-authenticated users.
-## Provides sign-in and sign-up functionality via Supabase auth.
+## Provides sign-in and sign-up functionality via AuthManager (routed through the local backend proxy).
 
 @onready var email_input: LineEdit = $VBoxContainer/FormContainer/EmailInput
 @onready var password_input: LineEdit = $VBoxContainer/FormContainer/PasswordInput

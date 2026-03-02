@@ -90,6 +90,9 @@ func _process(_delta: float) -> void:
 					if not req.is_empty():
 						_dispatch(peer, req)
 						remove = true
+					elif _is_malformed_request(conn["buffer"]):
+						send_response(peer, 400, '{"error":"Bad request"}')
+						remove = true
 
 			StreamPeerTCP.STATUS_NONE, StreamPeerTCP.STATUS_ERROR:
 				remove = true
@@ -97,6 +100,20 @@ func _process(_delta: float) -> void:
 		if remove:
 			_connections.remove_at(i)
 		i -= 1
+
+
+## Check if the buffer contains a complete HTTP header section (\r\n\r\n found)
+## but the request line is malformed (cannot be parsed into method + path)
+func _is_malformed_request(buf: PackedByteArray) -> bool:
+	var raw := buf.get_string_from_utf8()
+	var sep := raw.find("\r\n\r\n")
+	if sep == -1:
+		return false  # Headers not yet complete — not malformed, just incomplete
+	var header_section := raw.substr(0, sep)
+	var first_nl := header_section.find("\r\n")
+	var req_line := header_section.substr(0, first_nl if first_nl >= 0 else header_section.length())
+	var parts := req_line.split(" ", false, 2)
+	return parts.size() < 2
 
 
 func _parse_request(buf: PackedByteArray) -> Dictionary:

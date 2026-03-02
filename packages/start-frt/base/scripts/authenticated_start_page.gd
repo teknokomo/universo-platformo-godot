@@ -10,7 +10,9 @@ extends Control
 
 
 func _ready() -> void:
+	AuthManager.signed_in.connect(_on_signed_in)
 	AuthManager.signed_out.connect(_on_signed_out)
+	visibility_changed.connect(_on_visibility_changed)
 	_update_user_info()
 
 
@@ -31,6 +33,15 @@ func _on_sign_out_button_pressed() -> void:
 	sign_out_button.disabled = true
 	sign_out_button.text = "Signing out..."
 	AuthManager.sign_out()
+
+
+func _on_signed_in(_user: Dictionary) -> void:
+	_update_user_info()
+
+
+func _on_visibility_changed() -> void:
+	if visible:
+		_update_user_info()
 
 
 func _on_signed_out() -> void:

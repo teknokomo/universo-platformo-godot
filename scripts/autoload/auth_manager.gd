@@ -33,8 +33,11 @@ func _ready() -> void:
 
 ## Build backend URL from BACKEND_PORT env variable
 func _load_config() -> void:
-	var port := Config.get_env("BACKEND_PORT", "8080")
-	_backend_url = "http://127.0.0.1:%s" % port
+	var port_env := Config.get_env("BACKEND_PORT", "8080")
+	var port := int(port_env)
+	if port < 1 or port > 65535:
+		port = 8080
+	_backend_url = "http://127.0.0.1:%d" % port
 
 
 ## Sign in with email and password — routed through backend

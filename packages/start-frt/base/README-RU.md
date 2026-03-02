@@ -2,7 +2,7 @@
 
 ## Обзор
 
-Пакет Start Frontend предоставляет стартовую страницу для Universo Platformo. Он реализует аналог React-пакета `start-frontend/base`, адаптированный для Godot 4.6 и GDScript.
+Пакет Start Frontend предоставляет стартовую страницу для Universo Platformo. Он реализует аналог React-пакета `start-frontend/base`, адаптированный для Godot 4.3+ и GDScript.
 
 ## Возможности
 
